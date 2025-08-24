@@ -12,7 +12,6 @@
 #define CYAN    "\033[36m"
 #define BOLD    "\033[1m"
 
-
 GtkWidget *globalWindow = NULL;
 GtkWidget *progressBar = NULL;
 static double lastVol = -1.0;
