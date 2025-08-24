@@ -1,4 +1,3 @@
-# Compiler
 CC = gcc
 
 # Compiler flags: warnings, debug info, and pkg-config cflags for GTK4 + others

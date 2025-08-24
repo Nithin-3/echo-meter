@@ -1,13 +1,14 @@
+# Maintainer: nithin <nithin3dev@gmail.com>
 pkgname=echo-meter
-pkgver=1.0.0
+pkgver=1.0.1
 pkgrel=1
-pkgdesc="Terminal-launched GTK app for visual mic/brightness meter"
+pkgdesc="A GTK4 application for visualizing echo measurements"
 arch=('x86_64')
 url="https://github.com/Nithin-3/echo-meter"
 license=('MIT')
 depends=('gtk4' 'gtk4-layer-shell' 'json-glib')
-source=("https://github.com/Nithin-3/echo-meter/archive/refs/tags/v$pkgver.tar.gz")
-md5sums=('SKIP')
+makedepends=('gcc' 'pkgconf' 'make')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
 
 build() {
   cd "$srcdir/$pkgname-$pkgver"
@@ -16,9 +17,15 @@ build() {
 
 package() {
   cd "$srcdir/$pkgname-$pkgver"
+
+  # Install binary
   install -Dm755 echo-meter "$pkgdir/usr/bin/echo-meter"
-  install -Dm644 assets/style.css "$pkgdir/usr/share/echo-meter/style.css"
-  install -Dm644 assets/conf.json "$pkgdir/usr/share/echo-meter/conf.json"
+
+  # Install assets
+  install -d "$pkgdir/usr/share/echo-meter"
+  cp -r assets/* "$pkgdir/usr/share/echo-meter/"
+
+  # Install license
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 
 }
