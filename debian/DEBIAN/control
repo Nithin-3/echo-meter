@@ -1,0 +1,9 @@
+Package: echo-meter
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: libgtk-4-dev, libgtk-layer-shell-0.1-dev, libjson-glib-dev
+Maintainer: nithin nithin3dev@gmail.com
+Description: GTK GUI meter app launched from terminal
+
