@@ -1,0 +1,24 @@
+
+#status-bar {
+    color: #019606;           /* Text color */
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 0;
+}
+
+#status-bar trough {
+    background-color: #222222; /* Optional: dark grey trough */
+    border-radius: 0;
+    min-height: 20px;
+}
+
+#status-bar trough progress {
+    background-color: #019606;
+    border-radius: 0;
+    min-height: 20px;
+}
+#progress-label {
+    color: rgba(1, 150, 6, 1);
+    font-weight: bold;
+    text-shadow: 0 0 5px #000000;
+}
