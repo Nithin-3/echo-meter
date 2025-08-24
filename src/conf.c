@@ -2,6 +2,9 @@
 #include <string.h>
 #include <json-glib/json-glib.h>
 #include <stdio.h>
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define YELLOW  "\033[33m"
 
 static bool is_valid_orientation(const char *val) {
     return (strcmp(val, "horizontal") == 0 || strcmp(val, "vertical") == 0);
@@ -20,7 +23,7 @@ bool catConf(const char *filename, Config *config) {
     JsonParser *parser = json_parser_new();
 
     if (!json_parser_load_from_file(parser, filename, &error)) {
-        fprintf(stderr, "Failed to load JSON file: %s\n", error->message);
+        fprintf(stderr, RED "[ERROR]" RESET " Failed to load JSON file: %s\n", error->message);
         g_error_free(error);
         g_object_unref(parser);
         return false;
@@ -28,7 +31,7 @@ bool catConf(const char *filename, Config *config) {
 
     JsonNode *root = json_parser_get_root(parser);
     if (!JSON_NODE_HOLDS_OBJECT(root)) {
-        fprintf(stderr, "Root element is not an object\n");
+        fprintf(stderr, RED "[ERROR]" RESET " Root element is not an object\n");
         g_object_unref(parser);
         return false;
     }
@@ -36,14 +39,14 @@ bool catConf(const char *filename, Config *config) {
     JsonObject *root_obj = json_node_get_object(root);
 
     if (!json_object_has_member(root_obj, "orientation")) {
-        fprintf(stderr, "Missing 'orientation' field\n");
+        fprintf(stderr, RED "[ERROR]" RESET " Missing 'orientation' field\n");
         g_object_unref(parser);
         return false;
     }
 
     const char *orientation = json_object_get_string_member(root_obj, "orientation");
     if (!is_valid_orientation(orientation)) {
-        fprintf(stderr, "Invalid orientation: '%s'. Must be 'horizontal' or 'vertical'.\n", orientation);
+        fprintf(stderr, RED "[ERROR]" RESET " Invalid orientation: '%s'. Must be 'horizontal' or 'vertical'.\n", orientation);
         g_object_unref(parser);
         return false;
     }
@@ -56,7 +59,7 @@ bool catConf(const char *filename, Config *config) {
     config->orientation[sizeof(config->orientation)-1] = '\0';
 
     if (!json_object_has_member(root_obj, "window_position")) {
-        fprintf(stderr, "Missing 'window_position' field\n");
+        fprintf(stderr, RED "[ERROR]" RESET " Missing 'window_position' field\n");
         g_object_unref(parser);
         return false;
     }
@@ -73,7 +76,7 @@ bool catConf(const char *filename, Config *config) {
         if (json_object_has_member(pos_obj, "vertical")) {
             const char *v_align = json_object_get_string_member(pos_obj, "vertical");
             if (!is_valid_vertical_align(v_align)) {
-                fprintf(stderr, "Invalid vertical alignment: '%s'. Must be 'top', 'bottom' or 'center'.\n", v_align);
+                fprintf(stderr, RED "[ERROR]" RESET " Invalid vertical alignment: '%s'. Must be 'top', 'bottom' or 'center'.\n", v_align);
                 g_object_unref(parser);
                 return false;
             }
@@ -86,7 +89,7 @@ bool catConf(const char *filename, Config *config) {
         if (json_object_has_member(pos_obj, "horizontal")) {
             const char *h_align = json_object_get_string_member(pos_obj, "horizontal");
             if (!is_valid_horizontal_align(h_align)) {
-                fprintf(stderr, "Invalid horizontal alignment: '%s'. Must be 'left', 'right' or 'center'.\n", h_align);
+                fprintf(stderr, RED "[ERROR]" RESET " Invalid horizontal alignment: '%s'. Must be 'left', 'right' or 'center'.\n", h_align);
                 g_object_unref(parser);
                 return false;
             }
@@ -99,7 +102,7 @@ bool catConf(const char *filename, Config *config) {
         if (json_object_has_member(pos_obj, "margin")) {
             int margin = json_object_get_int_member(pos_obj, "margin");
             if (margin < 0) {
-                fprintf(stderr, "Invalid margin value: %d. Must be >= 0.\n", margin);
+                fprintf(stderr, RED "[ERROR]" RESET " Invalid margin value: %d. Must be >= 0.\n", margin);
                 g_object_unref(parser);
                 return false;
             }

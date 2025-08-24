@@ -3,6 +3,15 @@
 #include <gtk-layer-shell/gtk-layer-shell.h>
 #include "conf.h"
 #include "path.h"
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
+#define BOLD    "\033[1m"
+
 
 GtkWidget *globalWindow = NULL;
 GtkWidget *progressBar = NULL;
@@ -15,20 +24,20 @@ static void onDestroy(GtkWidget *widget, gpointer data) {
     (void)widget;
     (void)data;
     globalWindow = NULL;
-    g_print("[INFO] Window destroyed.\n");
+    g_print(GREEN "[INFO]" RESET " Window destroyed.\n");
 }
 
 static gboolean onClose(gpointer data) {
     (void)data;
     if (globalWindow) {
-        g_print("[INFO] Closing window...\n");
+        g_print(GREEN "[INFO]" RESET " Closing window...\n");
         gtk_window_close(GTK_WINDOW(globalWindow));
         globalWindow = NULL;
     }
 
     GApplication *app = g_application_get_default();
     if (app) {
-        g_print("[INFO] Quitting application...\n");
+        g_print(GREEN "[INFO]" RESET " Quitting application...\n");
         g_application_quit(app);
     }
 
@@ -38,10 +47,10 @@ static gboolean onClose(gpointer data) {
 static void resetTimer() {
     if (timeoutId != 0) {
         g_source_remove(timeoutId);
-        g_print("[TIMER] Existing timer removed.\n");
+        g_print(CYAN "[TIMER]" RESET " Existing timer removed.\n");
     }
     timeoutId = g_timeout_add_seconds(5, onClose, NULL);
-    g_print("[TIMER] New auto-close timer set to 5 seconds.\n");
+    g_print(CYAN "[TIMER]" RESET " New auto-close timer set to 5 seconds.\n");
 }
 
 static void updateProgress(double val, const char *txt) {
@@ -90,14 +99,14 @@ static gboolean updateStatus(gpointer data) {
         snprintf(statusText, sizeof(statusText), " %.0f%%", fractionVol * 100);
         updateProgress(fractionVol, statusText);
         lastVol = fractionVol;
-        g_print("[UPDATE] Audio Volume: %.0f%%\n", fractionVol * 100);
+        g_print(MAGENTA "[UPDATE]" RESET " Audio Volume: %.0f%%\n", fractionVol * 100);
     }
 
     if (lastBri != fractionBri && strcmp(globalMode, "bri") == 0) {
         snprintf(statusText, sizeof(statusText), "🔆 %.0f%%", fractionBri * 100);
         updateProgress(fractionBri, statusText);
         lastBri = fractionBri;
-        g_print("[UPDATE] Brightness: %.0f%%\n", fractionBri * 100);
+        g_print(MAGENTA "[UPDATE]" RESET " Brightness: %.0f%%\n", fractionBri * 100);
     }
 
     return G_SOURCE_CONTINUE;
@@ -110,7 +119,7 @@ static void onActivate(GtkApplication *app, gpointer userData) {
     gboolean configLoaded = path ? catConf(path, &config) : FALSE;
 
     if (!configLoaded) {
-        g_print("[WARN] Could not load config file. Using defaults.\n");
+        g_print(YELLOW "[WARN]" RESET " Could not load config file. Using defaults.\n");
         strcpy(config.orientation, "horizontal");
         config.has_explicit_pos = false;
         strcpy(config.vertical_align, "center");
@@ -186,7 +195,7 @@ static void onActivate(GtkApplication *app, gpointer userData) {
 
     g_timeout_add(100, updateStatus, NULL);
     resetTimer();
-    g_print("[INFO] Application activated with mode: %s\n", globalMode);
+    g_print(GREEN "[INFO]" RESET " Application activated with mode: %s\n", globalMode);
 }
 
 static bool validateMode(char *mode) {
@@ -202,7 +211,7 @@ static bool validateMode(char *mode) {
     }
 
     if (!valid) {
-        g_printerr("[ERROR] Invalid argument. Usage: [aud|bri|mic]\n");
+        g_printerr(RED "[ERROR]" RESET " Invalid argument. Usage: [aud|bri|mic]\n");
         return FALSE;
     }
     return TRUE;
@@ -225,7 +234,7 @@ static int onCommandLine(GApplication *app, GApplicationCommandLine *cmdline, gp
 
 int main(int argc, char **argv) {
     if (argc != 2 && !validateMode(argv[1])) {
-        g_printerr("Usage: %s [aud|bri|mic]\n", argv[0]);
+        g_printerr(RED "[ERROR]" RESET " Usage: %s [aud|bri|mic]\n", argv[0]);
         return 1;
     }
     GtkApplication *app = gtk_application_new("com.nit.echo-meter", G_APPLICATION_HANDLES_COMMAND_LINE);
