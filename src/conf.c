@@ -31,6 +31,30 @@ static int clamp_step(int val) {
 }
 
 bool catConf(const char *path, Config *config) {
+    // Set default values
+    strncpy(config->orientation, "horizontal", sizeof(config->orientation) - 1);
+    config->orientation[sizeof(config->orientation) - 1] = '\0';
+
+    config->invertDirection = false;
+    config->timeout = 5;
+
+    config->has_explicit_pos = false;
+    strncpy(config->vertical_align, "top", sizeof(config->vertical_align) - 1);
+    config->vertical_align[sizeof(config->vertical_align) - 1] = '\0';
+
+    strncpy(config->horizontal_align, "center", sizeof(config->horizontal_align) - 1);
+    config->horizontal_align[sizeof(config->horizontal_align) - 1] = '\0';
+
+    config->margin = 0;
+
+    // Default icons as empty strings
+    config->icon.sound[0] = '\0';
+    config->icon.mute[0] = '\0';
+    config->icon.brightness[0] = '\0';
+    config->icon.mic[0] = '\0';
+    config->icon.mic_off[0] = '\0';
+
+    // Parse JSON config
     GError *error = NULL;
     JsonParser *parser = json_parser_new();
 
@@ -50,17 +74,25 @@ bool catConf(const char *path, Config *config) {
 
     JsonObject *root_obj = json_node_get_object(root);
 
-    const char *orientation = json_object_has_member(root_obj, "orientation") ?
-        json_object_get_string_member(root_obj, "orientation") : "horizontal";
-    if (!is_valid_orientation(orientation)) orientation = "horizontal";
-    strncpy(config->orientation, orientation, sizeof(config->orientation) - 1);
-    config->orientation[sizeof(config->orientation) - 1] = '\0';
+    if (json_object_has_member(root_obj, "orientation")) {
+        const char *orientation = json_object_get_string_member(root_obj, "orientation");
+        if (is_valid_orientation(orientation)) {
+            strncpy(config->orientation, orientation, sizeof(config->orientation) - 1);
+            config->orientation[sizeof(config->orientation) - 1] = '\0';
+        }
+    }
 
-    config->invertDirection = json_object_has_member(root_obj, "invert-direction") ?
-        json_object_get_boolean_member(root_obj, "invert-direction") : false;
+    if (json_object_has_member(root_obj, "invert-direction")) {
+        config->invertDirection = json_object_get_boolean_member(root_obj, "invert-direction");
+    }
+
+    if (json_object_has_member(root_obj, "timeout")) {
+        config->timeout = json_object_get_int_member(root_obj, "timeout");
+    }
 
     if (json_object_has_member(root_obj, "window_position")) {
         JsonObject *pos_obj = json_object_get_object_member(root_obj, "window_position");
+
         if (json_object_has_member(pos_obj, "x") && json_object_has_member(pos_obj, "y")) {
             config->has_explicit_pos = true;
             config->x = json_object_get_int_member(pos_obj, "x");
@@ -68,58 +100,56 @@ bool catConf(const char *path, Config *config) {
         } else {
             config->has_explicit_pos = false;
 
-            const char *v_align = json_object_has_member(pos_obj, "vertical") ?
-                json_object_get_string_member(pos_obj, "vertical") : "top";
-            if (!is_valid_vertical_align(v_align)) v_align = "top";
-            strncpy(config->vertical_align, v_align, sizeof(config->vertical_align) - 1);
-            config->vertical_align[sizeof(config->vertical_align) - 1] = '\0';
+            if (json_object_has_member(pos_obj, "vertical")) {
+                const char *v_align = json_object_get_string_member(pos_obj, "vertical");
+                if (is_valid_vertical_align(v_align)) {
+                    strncpy(config->vertical_align, v_align, sizeof(config->vertical_align) - 1);
+                    config->vertical_align[sizeof(config->vertical_align) - 1] = '\0';
+                }
+            }
 
-            const char *h_align = json_object_has_member(pos_obj, "horizontal") ?
-                json_object_get_string_member(pos_obj, "horizontal") : "center";
-            if (!is_valid_horizontal_align(h_align)) h_align = "center";
-            strncpy(config->horizontal_align, h_align, sizeof(config->horizontal_align) - 1);
-            config->horizontal_align[sizeof(config->horizontal_align) - 1] = '\0';
+            if (json_object_has_member(pos_obj, "horizontal")) {
+                const char *h_align = json_object_get_string_member(pos_obj, "horizontal");
+                if (is_valid_horizontal_align(h_align)) {
+                    strncpy(config->horizontal_align, h_align, sizeof(config->horizontal_align) - 1);
+                    config->horizontal_align[sizeof(config->horizontal_align) - 1] = '\0';
+                }
+            }
 
-            config->margin = json_object_has_member(pos_obj, "margin") ?
-                json_object_get_int_member(pos_obj, "margin") : 0;
-            if (config->margin < 0) config->margin = 0;
+            if (json_object_has_member(pos_obj, "margin")) {
+                int margin = json_object_get_int_member(pos_obj, "margin");
+                config->margin = margin < 0 ? 0 : margin;
+            }
         }
-    } else {
-        config->has_explicit_pos = false;
-        strncpy(config->vertical_align, "top", sizeof(config->vertical_align) - 1);
-        config->vertical_align[sizeof(config->vertical_align) - 1] = '\0';
-        strncpy(config->horizontal_align, "center", sizeof(config->horizontal_align) - 1);
-        config->horizontal_align[sizeof(config->horizontal_align) - 1] = '\0';
-        config->margin = 0;
     }
 
     if (json_object_has_member(root_obj, "icon")) {
         JsonObject *icon_obj = json_object_get_object_member(root_obj, "icon");
 
-        const char *sound = json_object_has_member(icon_obj, "sound") ?
-            json_object_get_string_member(icon_obj, "sound") : "";
-        strncpy(config->icon.sound, sound, sizeof(config->icon.sound) - 1);
-        config->icon.sound[sizeof(config->icon.sound) - 1] = '\0';
+        if (json_object_has_member(icon_obj, "sound")) {
+            strncpy(config->icon.sound, json_object_get_string_member(icon_obj, "sound"), sizeof(config->icon.sound) - 1);
+            config->icon.sound[sizeof(config->icon.sound) - 1] = '\0';
+        }
 
-        const char *mute = json_object_has_member(icon_obj, "mute") ?
-            json_object_get_string_member(icon_obj, "mute") : "";
-        strncpy(config->icon.mute, mute, sizeof(config->icon.mute) - 1);
-        config->icon.mute[sizeof(config->icon.mute) - 1] = '\0';
+        if (json_object_has_member(icon_obj, "mute")) {
+            strncpy(config->icon.mute, json_object_get_string_member(icon_obj, "mute"), sizeof(config->icon.mute) - 1);
+            config->icon.mute[sizeof(config->icon.mute) - 1] = '\0';
+        }
 
-        const char *brightness = json_object_has_member(icon_obj, "brightness") ?
-            json_object_get_string_member(icon_obj, "brightness") : "";
-        strncpy(config->icon.brightness, brightness, sizeof(config->icon.brightness) - 1);
-        config->icon.brightness[sizeof(config->icon.brightness) - 1] = '\0';
+        if (json_object_has_member(icon_obj, "brightness")) {
+            strncpy(config->icon.brightness, json_object_get_string_member(icon_obj, "brightness"), sizeof(config->icon.brightness) - 1);
+            config->icon.brightness[sizeof(config->icon.brightness) - 1] = '\0';
+        }
 
-        const char *mic = json_object_has_member(icon_obj, "mic") ?
-            json_object_get_string_member(icon_obj, "mic") : "";
-        strncpy(config->icon.mic, mic, sizeof(config->icon.mic) - 1);
-        config->icon.mic[sizeof(config->icon.mic) - 1] = '\0';
+        if (json_object_has_member(icon_obj, "mic")) {
+            strncpy(config->icon.mic, json_object_get_string_member(icon_obj, "mic"), sizeof(config->icon.mic) - 1);
+            config->icon.mic[sizeof(config->icon.mic) - 1] = '\0';
+        }
 
-        const char *mic_off = json_object_has_member(icon_obj, "mic_off") ?
-            json_object_get_string_member(icon_obj, "mic_off") : "";
-        strncpy(config->icon.mic_off, mic_off, sizeof(config->icon.mic_off) - 1);
-        config->icon.mic_off[sizeof(config->icon.mic_off) - 1] = '\0';
+        if (json_object_has_member(icon_obj, "mic_off")) {
+            strncpy(config->icon.mic_off, json_object_get_string_member(icon_obj, "mic_off"), sizeof(config->icon.mic_off) - 1);
+            config->icon.mic_off[sizeof(config->icon.mic_off) - 1] = '\0';
+        }
     }
 
     g_object_unref(parser);

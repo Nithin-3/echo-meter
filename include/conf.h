@@ -17,7 +17,7 @@ typedef struct {
 typedef struct {
     char orientation[16], vertical_align[16], horizontal_align[16];
     gboolean has_explicit_pos, invertDirection;
-    int x, y, margin;
+    int x, y, margin,timeout;
     IconConfig icon;
 } Config;
 

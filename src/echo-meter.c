@@ -14,7 +14,7 @@
 #define BOLD    "\033[1m"
 
 GtkWidget *globalWindow = NULL;
-GtkWidget *progressBar = NULL;
+GtkWidget *slider = NULL;
 static float lastChange = -1.0;
 static guint timeoutId = 0;
 static char *globalMode = NULL;
@@ -53,10 +53,10 @@ static void resetTimer() {
 }
 
 static void updateProgress(double val, const char *txt) {
-    if (progressBar != NULL) {
-        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progressBar), val);
+    if (slider != NULL) {
+        gtk_range_set_value(GTK_RANGE(slider), val);
 
-        GtkWidget *label = g_object_get_data(G_OBJECT(progressBar), "progress-label");
+        GtkWidget *label = g_object_get_data(G_OBJECT(slider), "progress-label");
         if (label) {
             gtk_label_set_text(GTK_LABEL(label), txt);
         }
@@ -64,7 +64,7 @@ static void updateProgress(double val, const char *txt) {
 }
 
 static gboolean updateStatus(gpointer userData) {
-    if (progressBar == NULL || globalMode == NULL)
+    if (slider == NULL || globalMode == NULL)
         return G_SOURCE_CONTINUE;
     Config *config = (Config *)userData;
     float fraction = getVal(globalMode);
@@ -146,29 +146,32 @@ static void onActivate(GtkApplication *app, gpointer userData) {
     GtkWidget *box = gtk_box_new(orient, 10);
     gtk_window_set_child(GTK_WINDOW(globalWindow), box);
 
-    GtkWidget *overlay = gtk_overlay_new();
-    progressBar = gtk_progress_bar_new();
-    gtk_orientable_set_orientation(GTK_ORIENTABLE(progressBar), orient);
-    gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(progressBar), FALSE);
-    gtk_progress_bar_set_inverted(GTK_PROGRESS_BAR(progressBar), config->invertDirection);
+    GtkWidget *row_box = gtk_box_new(orient, 5);
 
-    if (orient == GTK_ORIENTATION_VERTICAL) {
-        gtk_widget_set_size_request(progressBar, 25, 50);
-    }
-
-    gtk_widget_set_name(progressBar, "status-bar");
-
-    GtkWidget *label = gtk_label_new("");
+    slider = gtk_scale_new_with_range(orient, 0.0, 1.0, 0.01);
+    gtk_scale_set_draw_value(GTK_SCALE(slider), FALSE);
+    gtk_widget_set_name(slider, "status-slider");
+    GtkWidget *label = gtk_label_new("ex");
     gtk_widget_set_name(label, "progress-label");
     gtk_widget_set_halign(label, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(label, GTK_ALIGN_CENTER);
 
-    gtk_overlay_set_child(GTK_OVERLAY(overlay), progressBar);
-    gtk_overlay_add_overlay(GTK_OVERLAY(overlay), label);
+    if (orient == GTK_ORIENTATION_VERTICAL) {
+        gtk_widget_set_size_request(slider, 25, 100);
+        gtk_range_set_inverted(GTK_RANGE(slider), !config->invertDirection);
+        gtk_box_append(GTK_BOX(row_box), slider);
+        gtk_box_append(GTK_BOX(row_box), label);
+    }else{
+        gtk_widget_set_size_request(slider, 100, 25);
+        gtk_range_set_inverted(GTK_RANGE(slider), config->invertDirection);
+        gtk_box_append(GTK_BOX(row_box), slider);
+        gtk_box_append(GTK_BOX(row_box), label);
+    }
 
-    g_object_set_data(G_OBJECT(progressBar), "progress-label", label);
 
-    gtk_box_append(GTK_BOX(box), overlay);
+    g_object_set_data(G_OBJECT(slider), "progress-label", label);
+
+    gtk_box_append(GTK_BOX(box), row_box);
     gtk_window_present(GTK_WINDOW(globalWindow));
 
     g_print(GREEN "[INFO]" RESET " Application activated with mode: %s\n", globalMode);
