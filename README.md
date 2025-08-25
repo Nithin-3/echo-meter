@@ -1,5 +1,5 @@
 # echo-meter
-
+# Try to mimic function key
 A lightweight GTK4 layer-shell application that displays always-on-top real-time audio, brightness, and microphone level indicators.
 
 ---
