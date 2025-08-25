@@ -50,7 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-
+.cache/
 # debug information files
 *.dwo
 # Object files

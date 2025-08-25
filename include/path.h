@@ -3,12 +3,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <unistd.h>
 
 #define MAX_PATH 512
 
-static inline char* find_path(const char* filename) {
+static inline char* findPath(const char* filename) {
     static char path[MAX_PATH];
     const char* home = getenv("HOME");
 
@@ -22,8 +21,8 @@ static inline char* find_path(const char* filename) {
     if (access(path, R_OK) == 0)
         return path;
 
-    return NULL;  // Not found
+    return NULL;
 }
 
-#endif // STYLE_PATH_H
+#endif
 

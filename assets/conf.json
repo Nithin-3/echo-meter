@@ -4,6 +4,13 @@
     "vertical": "top",
     "horizontal": "center",
     "margin": 50
+  },
+  "icon": {
+    "sound": "",
+    "mute": "",
+    "brightness": "",
+    "mic": "",
+    "mic_off": ""
   }
 }
 
