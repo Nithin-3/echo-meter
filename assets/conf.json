@@ -1,16 +1,35 @@
 {
-  "orientation": "horizontal",
+  "orientation": "horizontal",           // default: "horizontal"
+  "invert-direction": false,             // default: false
+
   "window_position": {
-    "vertical": "top",
-    "horizontal": "center",
-    "margin": 50
+    // Only use either x/y or vertical+horizontal+margin
+    // If x and y are set, `has_explicit_pos = true`
+    "x": 40,                              // custom: overrides alignment
+    "y": 30,                              // custom: overrides alignment
+
+    "vertical": "top",                    // default: "top" (if x/y missing)
+    "horizontal": "center",              // default: "center" (if x/y missing)
+    "margin": 50                          // default: 0 (only if align used)
   },
+
+  "timeout": 1500,                        // custom (default assumed in code elsewhere)
+
   "icon": {
-    "sound": "",
-    "mute": "",
-    "brightness": "",
-    "mic": "",
-    "mic_off": ""
+    "sound": "🔊",                         // default: ""
+    "mute": "🔇",                          // default: ""
+    "brightness": "🌞",                    // default: ""
+    "mic": "🎤",                           // default: ""
+    "mic_off": "🙊"                        // default: ""
+  },
+
+  "system_info": {
+    "volume_tool": "wpctl",              // default: "wpctl"
+    "brightness_tool": "brightnessctl",  // default: "brightnessctl"
+    "mic_tool": "pactl",                 // default: "pactl"
+
+    "volume_step": 5,                    // default: 5
+    "brightness_step": 10,              // default: 10
+    "mic_step": 3                        // default: 3
   }
 }
-
