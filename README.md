@@ -102,16 +102,42 @@ echo-meter is configurable via files in `~/.config/echo-meter` (user-specific) o
 
 ### Example `config.json`
 
-```json
+> **Note:** Standard JSON does not support comments, but for clarity, comments are included here using `//`.  
+> If your parser does not support comments, remove the comment lines.
+
+```jsonc
 {
-  "orientation": "horizontal",
-  "invert-direction": true, // default: false
+  "orientation": "horizontal",           // "horizontal" or "vertical" layout for indicators
+  "invert-direction": false,             // If true, reverses the indicator direction
+
   "window_position": {
-    "x": 40,
-    "y": 30, // x, y have high priority if set
-    "vertical": "top",
-    "horizontal": "center",
-    "margin": 50
+    // Only use either x/y or vertical+horizontal+margin
+    // If x and y are set, `has_explicit_pos = true`
+    "x": 40,                              // Custom: overrides alignment
+    "y": 30,                              // Custom: overrides alignment
+
+    "vertical": "top",                    // "top" (default, if x/y missing)
+    "horizontal": "center",               // "center" (default, if x/y missing)
+    "margin": 50                          // Default: 0 (only if align used)
+  },
+
+
+  "icon": {
+    "sound": "🔊",                        // Sound indicator icon
+    "mute": "🔇",                         // Mute indicator icon
+    "brightness": "🌞",                   // Brightness indicator icon
+    "mic": "🎤",                          // Microphone indicator icon
+    "mic_off": "🙊"                       // Microphone-off indicator icon
+  },
+
+  "system_info": {
+    "volume_tool": "wpctl",               // Tool for volume ("wpctl" default)
+    "brightness_tool": "brightnessctl",   // Tool for brightness ("brightnessctl" default)
+    "mic_tool": "pactl",                  // Tool for mic ("pactl" default)
+
+    "volume_step": 5,                     // Step size for volume changes
+    "brightness_step": 10,                // Step size for brightness changes
+    "mic_step": 3                         // Step size for mic changes
   }
 }
 ```
@@ -119,6 +145,9 @@ echo-meter is configurable via files in `~/.config/echo-meter` (user-specific) o
 - `orientation`: `"horizontal"` or `"vertical"` layout for indicators.
 - `invert-direction`: If true, reverses the indicator direction.
 - `window_position`: Controls the window's placement. If `x` and `y` are set, they take priority. Otherwise, the overlay is positioned using `vertical`, `horizontal`, and `margin`.
+- `timeout`: The indicator's auto-hide timeout in milliseconds.
+- `icon`: Unicode or emoji icons for each indicator.
+- `system_info`: Tools and step size for adjusting volume, brightness, and mic.
 
 ### Example `style.css`
 
@@ -164,7 +193,6 @@ Edit these files to customize indicator order, colors, position, and more.
 ## Known Issues / Limitations
 
 - Only supports modern Linux desktops (e.g., Wayland compositors).
-- X11 is not supported.
 - Features may vary depending on compositor and hardware support.
 
 ---
