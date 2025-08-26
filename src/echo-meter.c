@@ -43,19 +43,19 @@ static gboolean onClose(gpointer data) {
     return G_SOURCE_REMOVE;
 }
 
-static void resetTimer() {
+static void resetTimer(int sec) {
     if (timeoutId != 0) {
         g_source_remove(timeoutId);
         g_print(CYAN "[TIMER]" RESET " Existing timer removed.\n");
+        timeoutId = 0;
     }
-    timeoutId = g_timeout_add_seconds(5, onClose, NULL);
-    g_print(CYAN "[TIMER]" RESET " New auto-close timer set to 5 seconds.%s\n",globalMode);
+    timeoutId = g_timeout_add_seconds(sec, onClose, NULL);
+    g_print(CYAN "[TIMER]" RESET " New auto-close timer set to %d seconds.\n",sec);
 }
 
 static void updateProgress(double val, const char *txt) {
     if (slider != NULL) {
         gtk_range_set_value(GTK_RANGE(slider), val);
-
         GtkWidget *label = g_object_get_data(G_OBJECT(slider), "progress-label");
         if (label) {
             gtk_label_set_text(GTK_LABEL(label), txt);
@@ -90,21 +90,17 @@ static gboolean updateStatus(gpointer userData) {
     return G_SOURCE_CONTINUE;
 }
 
+
+static void sliderValChang(GtkRange *range, gpointer userData) {
+    Config* config = (Config *) userData;
+    float value = gtk_range_get_value(range);
+    g_print("Slider value: %.2f\n", value);
+    setVal(globalMode,value);
+    resetTimer(config->timeout);
+}
 static void onActivate(GtkApplication *app, gpointer userData) {
 
-    Config *config = g_new0(Config,1);
-    char *path = findPath("conf.json");
-    gboolean configLoaded = path ? catConf(path, config) : FALSE;
-
-    if (!configLoaded) {
-        g_print(YELLOW "[WARN]" RESET " Could not load config file. Using defaults.\n");
-        strcpy(config->orientation, "horizontal");
-        config->has_explicit_pos = false;
-        strcpy(config->vertical_align, "center");
-        strcpy(config->horizontal_align, "center");
-        config->margin = 0;
-    }
-
+    Config* config = (Config *) userData;
     globalWindow = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(globalWindow), "Indicator");
     gtk_window_set_resizable(GTK_WINDOW(globalWindow), FALSE);
@@ -114,16 +110,16 @@ static void onActivate(GtkApplication *app, gpointer userData) {
     gtk_layer_set_layer(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_LAYER_OVERLAY);
     gtk_layer_set_exclusive_zone(GTK_WINDOW(globalWindow), -1);
 
-    if (config->has_explicit_pos) {
+    if (config->hasExplicitPos) {
         gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_TOP, TRUE);
         gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_LEFT, TRUE);
         gtk_layer_set_margin(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_TOP, config->y);
         gtk_layer_set_margin(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_LEFT, config->x);
     } else {
-        gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_TOP, strcmp(config->vertical_align, "top") == 0);
-        gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_BOTTOM, strcmp(config->vertical_align, "bottom") == 0);
-        gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_LEFT, strcmp(config->horizontal_align, "left") == 0);
-        gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_RIGHT, strcmp(config->horizontal_align, "right") == 0);
+        gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_TOP, strcmp(config->verticalAlign, "top") == 0);
+        gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_BOTTOM, strcmp(config->verticalAlign, "bottom") == 0);
+        gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_LEFT, strcmp(config->horizontalAlign, "left") == 0);
+        gtk_layer_set_anchor(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_RIGHT, strcmp(config->horizontalAlign, "right") == 0);
         gtk_layer_set_margin(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_TOP, config->margin);
         gtk_layer_set_margin(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_BOTTOM, config->margin);
         gtk_layer_set_margin(GTK_WINDOW(globalWindow), GTK_LAYER_SHELL_EDGE_LEFT, config->margin);
@@ -146,12 +142,14 @@ static void onActivate(GtkApplication *app, gpointer userData) {
     GtkWidget *box = gtk_box_new(orient, 10);
     gtk_window_set_child(GTK_WINDOW(globalWindow), box);
 
-    GtkWidget *row_box = gtk_box_new(orient, 5);
+    GtkWidget *rowBox = gtk_box_new(orient, 5);
 
     slider = gtk_scale_new_with_range(orient, 0.0, 1.0, 0.01);
     gtk_scale_set_draw_value(GTK_SCALE(slider), FALSE);
     gtk_widget_set_name(slider, "status-slider");
-    GtkWidget *label = gtk_label_new("ex");
+    g_signal_connect(slider, "value-changed", G_CALLBACK(sliderValChang), config);
+    GtkWidget *label = gtk_label_new("");
+
     gtk_widget_set_name(label, "progress-label");
     gtk_widget_set_halign(label, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(label, GTK_ALIGN_CENTER);
@@ -159,24 +157,24 @@ static void onActivate(GtkApplication *app, gpointer userData) {
     if (orient == GTK_ORIENTATION_VERTICAL) {
         gtk_widget_set_size_request(slider, 25, 100);
         gtk_range_set_inverted(GTK_RANGE(slider), !config->invertDirection);
-        gtk_box_append(GTK_BOX(row_box), slider);
-        gtk_box_append(GTK_BOX(row_box), label);
+        gtk_box_append(GTK_BOX(rowBox), slider);
+        gtk_box_append(GTK_BOX(rowBox), label);
     }else{
         gtk_widget_set_size_request(slider, 100, 25);
         gtk_range_set_inverted(GTK_RANGE(slider), config->invertDirection);
-        gtk_box_append(GTK_BOX(row_box), slider);
-        gtk_box_append(GTK_BOX(row_box), label);
+        gtk_box_append(GTK_BOX(rowBox), slider);
+        gtk_box_append(GTK_BOX(rowBox), label);
     }
 
 
     g_object_set_data(G_OBJECT(slider), "progress-label", label);
 
-    gtk_box_append(GTK_BOX(box), row_box);
+    gtk_box_append(GTK_BOX(box), rowBox);
     gtk_window_present(GTK_WINDOW(globalWindow));
 
     g_print(GREEN "[INFO]" RESET " Application activated with mode: %s\n", globalMode);
     g_timeout_add(100, updateStatus, config);
-    resetTimer();
+    resetTimer(config->timeout);
 }
 
 static bool validateMode(char *mode) {
@@ -208,7 +206,6 @@ static int onCommandLine(GApplication *app, GApplicationCommandLine *cmdline, gp
         g_free(globalMode);
     }
     globalMode = g_strdup(argv[1]);
-    resetTimer();
 
     return 0;
 }
@@ -222,10 +219,22 @@ int main(int argc, char **argv) {
         g_printerr(RED "[ERROR]" RESET " Invalid Usage: %s [aud|bri|mic]\n", argv[0]);
         return 1;
     }
+    Config *config = g_new0(Config,1);
+    char *path = findPath("conf.json");
+    gboolean configLoaded = path ? catConf(path, config) : FALSE;
+
+    if (!configLoaded) {
+        g_print(YELLOW "[WARN]" RESET " Could not load config file. Using defaults.\n");
+        strcpy(config->orientation, "horizontal");
+        config->hasExplicitPos = false;
+        strcpy(config->verticalAlign, "center");
+        strcpy(config->horizontalAlign, "center");
+        config->margin = 0;
+    }
     GtkApplication *app = gtk_application_new("com.nit.echo-meter", G_APPLICATION_HANDLES_COMMAND_LINE);
 
-    g_signal_connect(app, "command-line", G_CALLBACK(onCommandLine), NULL);
-    g_signal_connect(app, "activate", G_CALLBACK(onActivate), NULL);
+    g_signal_connect(app, "command-line", G_CALLBACK(onCommandLine), config);
+    g_signal_connect(app, "activate", G_CALLBACK(onActivate), config);
 
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

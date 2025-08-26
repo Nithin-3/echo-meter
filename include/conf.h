@@ -8,15 +8,15 @@ typedef struct {
     char mute[32];
     char brightness[32];
     char mic[32];
-    char mic_off[32];
+    char micOff[32];
 } IconConfig;
 typedef struct {
-    char volume_tool[32], brightness_tool[32], mic_tool[32];
-    int volume_step, brightness_step, mic_step;
+    char volumeTool[32], brightnessTool[32], micTool[32];
+    int volumeStep, brightnessStep, micStep;
 } Sys;
 typedef struct {
-    char orientation[16], vertical_align[16], horizontal_align[16];
-    gboolean has_explicit_pos, invertDirection;
+    char orientation[16], verticalAlign[16], horizontalAlign[16];
+    gboolean hasExplicitPos, invertDirection;
     int x, y, margin,timeout;
     IconConfig icon;
 } Config;

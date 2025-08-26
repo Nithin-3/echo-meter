@@ -6,19 +6,19 @@
 #define RED     "\033[31m"
 #define YELLOW  "\033[33m"
 
-static bool is_valid_orientation(const char *val) {
+static bool isValidOrientation(const char *val) {
     return (strcmp(val, "horizontal") == 0 || strcmp(val, "vertical") == 0);
 }
 
-static bool is_valid_vertical_align(const char *val) {
+static bool isValidVerticalAlign(const char *val) {
     return (strcmp(val, "top") == 0 || strcmp(val, "bottom") == 0 || strcmp(val, "center") == 0);
 }
 
-static bool is_valid_horizontal_align(const char *val) {
+static bool isValidHorizontalAlign(const char *val) {
     return (strcmp(val, "left") == 0 || strcmp(val, "right") == 0 || strcmp(val, "center") == 0);
 }
 
-static bool is_valid_tool(const char *val, const char *type) {
+static bool isValidTool(const char *val, const char *type) {
     if (strcmp(type, "volume") == 0 || strcmp(type, "mic") == 0)
         return (strcmp(val, "pactl") == 0 || strcmp(val, "wpctl") == 0);
     if (strcmp(type, "brightness") == 0)
@@ -26,7 +26,7 @@ static bool is_valid_tool(const char *val, const char *type) {
     return false;
 }
 
-static int clamp_step(int val) {
+static int clampStep(int val) {
     return (val >= 0 && val <= 50) ? val : -1;
 }
 
@@ -38,12 +38,12 @@ bool catConf(const char *path, Config *config) {
     config->invertDirection = false;
     config->timeout = 5;
 
-    config->has_explicit_pos = false;
-    strncpy(config->vertical_align, "top", sizeof(config->vertical_align) - 1);
-    config->vertical_align[sizeof(config->vertical_align) - 1] = '\0';
+    config->hasExplicitPos = false;
+    strncpy(config->verticalAlign, "top", sizeof(config->verticalAlign) - 1);
+    config->verticalAlign[sizeof(config->verticalAlign) - 1] = '\0';
 
-    strncpy(config->horizontal_align, "center", sizeof(config->horizontal_align) - 1);
-    config->horizontal_align[sizeof(config->horizontal_align) - 1] = '\0';
+    strncpy(config->horizontalAlign, "center", sizeof(config->horizontalAlign) - 1);
+    config->horizontalAlign[sizeof(config->horizontalAlign) - 1] = '\0';
 
     config->margin = 0;
 
@@ -52,7 +52,7 @@ bool catConf(const char *path, Config *config) {
     config->icon.mute[0] = '\0';
     config->icon.brightness[0] = '\0';
     config->icon.mic[0] = '\0';
-    config->icon.mic_off[0] = '\0';
+    config->icon.micOff[0] = '\0';
 
     // Parse JSON config
     GError *error = NULL;
@@ -72,83 +72,83 @@ bool catConf(const char *path, Config *config) {
         return false;
     }
 
-    JsonObject *root_obj = json_node_get_object(root);
+    JsonObject *rootObj = json_node_get_object(root);
 
-    if (json_object_has_member(root_obj, "orientation")) {
-        const char *orientation = json_object_get_string_member(root_obj, "orientation");
-        if (is_valid_orientation(orientation)) {
+    if (json_object_has_member(rootObj, "orientation")) {
+        const char *orientation = json_object_get_string_member(rootObj, "orientation");
+        if (isValidOrientation(orientation)) {
             strncpy(config->orientation, orientation, sizeof(config->orientation) - 1);
             config->orientation[sizeof(config->orientation) - 1] = '\0';
         }
     }
 
-    if (json_object_has_member(root_obj, "invert-direction")) {
-        config->invertDirection = json_object_get_boolean_member(root_obj, "invert-direction");
+    if (json_object_has_member(rootObj, "invert-direction")) {
+        config->invertDirection = json_object_get_boolean_member(rootObj, "invert-direction");
     }
 
-    if (json_object_has_member(root_obj, "timeout")) {
-        config->timeout = json_object_get_int_member(root_obj, "timeout");
+    if (json_object_has_member(rootObj, "timeout")) {
+        config->timeout = json_object_get_int_member(rootObj, "timeout");
     }
 
-    if (json_object_has_member(root_obj, "window_position")) {
-        JsonObject *pos_obj = json_object_get_object_member(root_obj, "window_position");
+    if (json_object_has_member(rootObj, "window_position")) {
+        JsonObject *posObj = json_object_get_object_member(rootObj, "window_position");
 
-        if (json_object_has_member(pos_obj, "x") && json_object_has_member(pos_obj, "y")) {
-            config->has_explicit_pos = true;
-            config->x = json_object_get_int_member(pos_obj, "x");
-            config->y = json_object_get_int_member(pos_obj, "y");
+        if (json_object_has_member(posObj, "x") && json_object_has_member(posObj, "y")) {
+            config->hasExplicitPos = true;
+            config->x = json_object_get_int_member(posObj, "x");
+            config->y = json_object_get_int_member(posObj, "y");
         } else {
-            config->has_explicit_pos = false;
+            config->hasExplicitPos = false;
 
-            if (json_object_has_member(pos_obj, "vertical")) {
-                const char *v_align = json_object_get_string_member(pos_obj, "vertical");
-                if (is_valid_vertical_align(v_align)) {
-                    strncpy(config->vertical_align, v_align, sizeof(config->vertical_align) - 1);
-                    config->vertical_align[sizeof(config->vertical_align) - 1] = '\0';
+            if (json_object_has_member(posObj, "vertical")) {
+                const char *vAlign = json_object_get_string_member(posObj, "vertical");
+                if (isValidVerticalAlign(vAlign)) {
+                    strncpy(config->verticalAlign, vAlign, sizeof(config->verticalAlign) - 1);
+                    config->verticalAlign[sizeof(config->verticalAlign) - 1] = '\0';
                 }
             }
 
-            if (json_object_has_member(pos_obj, "horizontal")) {
-                const char *h_align = json_object_get_string_member(pos_obj, "horizontal");
-                if (is_valid_horizontal_align(h_align)) {
-                    strncpy(config->horizontal_align, h_align, sizeof(config->horizontal_align) - 1);
-                    config->horizontal_align[sizeof(config->horizontal_align) - 1] = '\0';
+            if (json_object_has_member(posObj, "horizontal")) {
+                const char *hAlign = json_object_get_string_member(posObj, "horizontal");
+                if (isValidHorizontalAlign(hAlign)) {
+                    strncpy(config->horizontalAlign, hAlign, sizeof(config->horizontalAlign) - 1);
+                    config->horizontalAlign[sizeof(config->horizontalAlign) - 1] = '\0';
                 }
             }
 
-            if (json_object_has_member(pos_obj, "margin")) {
-                int margin = json_object_get_int_member(pos_obj, "margin");
+            if (json_object_has_member(posObj, "margin")) {
+                int margin = json_object_get_int_member(posObj, "margin");
                 config->margin = margin < 0 ? 0 : margin;
             }
         }
     }
 
-    if (json_object_has_member(root_obj, "icon")) {
-        JsonObject *icon_obj = json_object_get_object_member(root_obj, "icon");
+    if (json_object_has_member(rootObj, "icon")) {
+        JsonObject *iconObj = json_object_get_object_member(rootObj, "icon");
 
-        if (json_object_has_member(icon_obj, "sound")) {
-            strncpy(config->icon.sound, json_object_get_string_member(icon_obj, "sound"), sizeof(config->icon.sound) - 1);
+        if (json_object_has_member(iconObj, "sound")) {
+            strncpy(config->icon.sound, json_object_get_string_member(iconObj, "sound"), sizeof(config->icon.sound) - 1);
             config->icon.sound[sizeof(config->icon.sound) - 1] = '\0';
         }
 
-        if (json_object_has_member(icon_obj, "mute")) {
-            strncpy(config->icon.mute, json_object_get_string_member(icon_obj, "mute"), sizeof(config->icon.mute) - 1);
+        if (json_object_has_member(iconObj, "mute")) {
+            strncpy(config->icon.mute, json_object_get_string_member(iconObj, "mute"), sizeof(config->icon.mute) - 1);
             config->icon.mute[sizeof(config->icon.mute) - 1] = '\0';
         }
 
-        if (json_object_has_member(icon_obj, "brightness")) {
-            strncpy(config->icon.brightness, json_object_get_string_member(icon_obj, "brightness"), sizeof(config->icon.brightness) - 1);
+        if (json_object_has_member(iconObj, "brightness")) {
+            strncpy(config->icon.brightness, json_object_get_string_member(iconObj, "brightness"), sizeof(config->icon.brightness) - 1);
             config->icon.brightness[sizeof(config->icon.brightness) - 1] = '\0';
         }
 
-        if (json_object_has_member(icon_obj, "mic")) {
-            strncpy(config->icon.mic, json_object_get_string_member(icon_obj, "mic"), sizeof(config->icon.mic) - 1);
+        if (json_object_has_member(iconObj, "mic")) {
+            strncpy(config->icon.mic, json_object_get_string_member(iconObj, "mic"), sizeof(config->icon.mic) - 1);
             config->icon.mic[sizeof(config->icon.mic) - 1] = '\0';
         }
 
-        if (json_object_has_member(icon_obj, "mic_off")) {
-            strncpy(config->icon.mic_off, json_object_get_string_member(icon_obj, "mic_off"), sizeof(config->icon.mic_off) - 1);
-            config->icon.mic_off[sizeof(config->icon.mic_off) - 1] = '\0';
+        if (json_object_has_member(iconObj, "mic_off")) {
+            strncpy(config->icon.micOff, json_object_get_string_member(iconObj, "mic_off"), sizeof(config->icon.micOff) - 1);
+            config->icon.micOff[sizeof(config->icon.micOff) - 1] = '\0';
         }
     }
 
@@ -158,18 +158,18 @@ bool catConf(const char *path, Config *config) {
 
 bool catSys(const char *path, Sys *sys) {
     // Set default values before JSON parsing
-    strncpy(sys->volume_tool, "wpctl", sizeof(sys->volume_tool) - 1);
-    sys->volume_tool[sizeof(sys->volume_tool) - 1] = '\0';
+    strncpy(sys->volumeTool, "wpctl", sizeof(sys->volumeTool) - 1);
+    sys->volumeTool[sizeof(sys->volumeTool) - 1] = '\0';
 
-    strncpy(sys->brightness_tool, "brightnessctl", sizeof(sys->brightness_tool) - 1);
-    sys->brightness_tool[sizeof(sys->brightness_tool) - 1] = '\0';
+    strncpy(sys->brightnessTool, "brightnessctl", sizeof(sys->brightnessTool) - 1);
+    sys->brightnessTool[sizeof(sys->brightnessTool) - 1] = '\0';
 
-    strncpy(sys->mic_tool, "pactl", sizeof(sys->mic_tool) - 1);
-    sys->mic_tool[sizeof(sys->mic_tool) - 1] = '\0';
+    strncpy(sys->micTool, "pactl", sizeof(sys->micTool) - 1);
+    sys->micTool[sizeof(sys->micTool) - 1] = '\0';
 
-    sys->volume_step = 5;
-    sys->brightness_step = 10;
-    sys->mic_step = 3;
+    sys->volumeStep = 5;
+    sys->brightnessStep = 10;
+    sys->micStep = 3;
 
     // Now load JSON and override if valid
     GError *error = NULL;
@@ -189,40 +189,40 @@ bool catSys(const char *path, Sys *sys) {
         return false;
     }
 
-    JsonObject *root_obj = json_node_get_object(root);
+    JsonObject *rootObj = json_node_get_object(root);
 
-    if (json_object_has_member(root_obj, "system_info")) {
-        JsonObject *sys_obj = json_object_get_object_member(root_obj, "system_info");
+    if (json_object_has_member(rootObj, "system_info")) {
+        JsonObject *sysObj = json_object_get_object_member(rootObj, "system_info");
 
-        const char *vol_tool = json_object_get_string_member_with_default(sys_obj, "volume_tool", sys->volume_tool);
-        if (is_valid_tool(vol_tool, "volume")) {
-            strncpy(sys->volume_tool, vol_tool, sizeof(sys->volume_tool) - 1);
-            sys->volume_tool[sizeof(sys->volume_tool) - 1] = '\0';
+        const char *vol_tool = json_object_get_string_member_with_default(sysObj, "volumeTool", sys->volumeTool);
+        if (isValidTool(vol_tool, "volume")) {
+            strncpy(sys->volumeTool, vol_tool, sizeof(sys->volumeTool) - 1);
+            sys->volumeTool[sizeof(sys->volumeTool) - 1] = '\0';
         }
 
-        const char *bri_tool = json_object_get_string_member_with_default(sys_obj, "brightness_tool", sys->brightness_tool);
-        if (is_valid_tool(bri_tool, "brightness")) {
-            strncpy(sys->brightness_tool, bri_tool, sizeof(sys->brightness_tool) - 1);
-            sys->brightness_tool[sizeof(sys->brightness_tool) - 1] = '\0';
+        const char *bri_tool = json_object_get_string_member_with_default(sysObj, "brightnessTool", sys->brightnessTool);
+        if (isValidTool(bri_tool, "brightness")) {
+            strncpy(sys->brightnessTool, bri_tool, sizeof(sys->brightnessTool) - 1);
+            sys->brightnessTool[sizeof(sys->brightnessTool) - 1] = '\0';
         }
 
-        const char *mic_tool = json_object_get_string_member_with_default(sys_obj, "mic_tool", sys->mic_tool);
-        if (is_valid_tool(mic_tool, "mic")) {
-            strncpy(sys->mic_tool, mic_tool, sizeof(sys->mic_tool) - 1);
-            sys->mic_tool[sizeof(sys->mic_tool) - 1] = '\0';
+        const char *micTool = json_object_get_string_member_with_default(sysObj, "micTool", sys->micTool);
+        if (isValidTool(micTool, "mic")) {
+            strncpy(sys->micTool, micTool, sizeof(sys->micTool) - 1);
+            sys->micTool[sizeof(sys->micTool) - 1] = '\0';
         }
 
-        int v_step = json_object_get_int_member(sys_obj, "volume_step");
-        if (json_object_has_member(sys_obj, "volume_step") && clamp_step(v_step) != -1)
-            sys->volume_step = v_step;
+        int vStep = json_object_get_int_member(sysObj, "volume_step");
+        if (json_object_has_member(sysObj, "volume_step") && clampStep(vStep) != -1)
+            sys->volumeStep = vStep;
 
-        int b_step = json_object_get_int_member(sys_obj, "brightness_step");
-        if (json_object_has_member(sys_obj, "brightness_step") && clamp_step(b_step) != -1)
-            sys->brightness_step = b_step;
+        int bStep = json_object_get_int_member(sysObj, "brightness_step");
+        if (json_object_has_member(sysObj, "brightness_step") && clampStep(bStep) != -1)
+            sys->brightnessStep = bStep;
 
-        int m_step = json_object_get_int_member(sys_obj, "mic_step");
-        if (json_object_has_member(sys_obj, "mic_step") && clamp_step(m_step) != -1)
-            sys->mic_step = m_step;
+        int mStep = json_object_get_int_member(sysObj, "mic_step");
+        if (json_object_has_member(sysObj, "mic_step") && clampStep(mStep) != -1)
+            sys->micStep = mStep;
     }
 
     g_object_unref(parser);
