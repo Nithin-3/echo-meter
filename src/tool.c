@@ -11,9 +11,6 @@
 #define YEL   "\x1b[33m"
 #define RESET "\x1b[0m"
 
-static void logInfo(const char *msg) {
-    printf(GRN "[INFO] %s" RESET "\n", msg);
-}
 
 static void logError(const char *msg) {
     fprintf(stderr, RED "[ERROR] %s" RESET "\n", msg);
@@ -42,7 +39,6 @@ static Sys *getCachedSys() {
             return NULL;
         }
         loaded = 1;
-        logInfo(sys.volumeTool);
     }
     return &sys;
 }
@@ -137,33 +133,31 @@ void setVal(const char *mode, float val) {
     }
 
     if (cmd[0] != '\0') {
-        logInfo(cmd);
         system(cmd);
     }
 }
 
-void step(const char *mode, bool direction) {
+void step(const char *mode, bool direction, float stepVal) {
     Type type = parseType(mode);
     if (type == INVALIDT) {
         logError("Invalid mode in step");
         return;
     }
-
     Sys *s = getCachedSys();
     if (!s) return;
 
     float current = getVal(mode);
     if (current < 0.0f) return;
 
-    float stepVal = 0.0;
-    switch (type) {
-        case AUD: stepVal = s->volumeStep; break;
-        case BRI: stepVal = s->brightnessStep; break;
-        case MIC: stepVal = s->micStep; break;
-        default: return;
+    if (stepVal == 0.0) {
+        switch (type) {
+            case AUD: stepVal = s->volumeStep; break;
+            case BRI: stepVal = s->brightnessStep; break;
+            case MIC: stepVal = s->micStep; break;
+            default: return;
+        }
     }
-
-    float newVal = direction ? current + stepVal : current - stepVal;
+    float newVal = direction ? current + stepVal/100.0 : current - stepVal/100.0;
     setVal(mode, newVal);
 }
 

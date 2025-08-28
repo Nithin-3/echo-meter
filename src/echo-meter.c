@@ -46,7 +46,6 @@ static gboolean onClose(gpointer data) {
 static void resetTimer(int sec) {
     if (timeoutId != 0) {
         g_source_remove(timeoutId);
-        g_print(CYAN "[TIMER]" RESET " Existing timer removed.\n");
         timeoutId = 0;
     }
     timeoutId = g_timeout_add_seconds(sec, onClose, NULL);
@@ -94,7 +93,6 @@ static gboolean updateStatus(gpointer userData) {
 static void sliderValChang(GtkRange *range, gpointer userData) {
     Config* config = (Config *) userData;
     float value = gtk_range_get_value(range);
-    g_print("Slider value: %.2f\n", value);
     setVal(globalMode,value);
     resetTimer(config->timeout);
 }
@@ -177,48 +175,61 @@ static void onActivate(GtkApplication *app, gpointer userData) {
     resetTimer(config->timeout);
 }
 
-static bool validateMode(char *mode) {
-    const char *validArgs[] = {"aud", "bri", "mic"};
-    const int validCount = sizeof(validArgs) / sizeof(validArgs[0]);
-    int valid = 0;
+bool validate_percentage(const char *s) {
+    char *end;
+    long val = strtol(s, &end, 10);
 
-    for (int i = 0; i < validCount; i++) {
-        if (strcmp(mode, validArgs[i]) == 0) {
-            valid = 1;
-            break;
+    if (*end != '\0') return false;
+    if (val < 0 || val > 100) return false;
+    return true;
+}
+
+bool validate_args(int argc, char *argv[]) {
+    if (argc < 2) return false;
+    if (!(strcmp(argv[1], "aud") == 0 || strcmp(argv[1], "mic") == 0 || strcmp(argv[1], "bri") == 0)) return false;
+    float value = 0.0;
+    int dir = -1;
+    if (argc >= 3) {
+        if (strcmp(argv[2], "+") == 0) {
+            dir = 1;
+        } else if (strcmp(argv[2], "-") == 0) {
+            dir = 0;
+        } else {
+            printf("Error: second argument must be '+' or '-'\n");
+            return false;
         }
     }
-
-    if (!valid) {
-        g_printerr(RED "[ERROR]" RESET " Invalid argument. Usage: [aud|bri|mic]\n");
-        return FALSE;
+    if (argc >= 4) {
+        if (!validate_percentage(argv[3])) {
+            printf("Error: third argument must be an integer 0-100\n");
+            return false;
+        }
+        value = atof(argv[3]);
     }
-    return TRUE;
+    if (dir != -1) step(argv[1], dir, value);
+    return true;
 }
+
+
 
 static int onCommandLine(GApplication *app, GApplicationCommandLine *cmdline, gpointer userData) {
     char **argv;
     int argc;
     argv = g_application_command_line_get_arguments(cmdline, &argc);
-    if(globalMode == NULL) g_application_activate(app);
 
-    if (globalMode) {
-        g_free(globalMode);
+    if (!validate_args(argc, argv)) {
+        printf("Usage: %s [aud|mic|bri] (+|-) (0-100)\n", argv[0]);
+        return 1;
     }
+    if(globalMode == NULL) g_application_activate(app);
+    if (globalMode) g_free(globalMode);
     globalMode = g_strdup(argv[1]);
 
     return 0;
 }
 
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        g_printerr(RED "[ERROR]" RESET " Usage: %s [aud|bri|mic]\n", argv[0]);
-        return 1;
-    }
-    if(!validateMode(argv[1])){
-        g_printerr(RED "[ERROR]" RESET " Invalid Usage: %s [aud|bri|mic]\n", argv[0]);
-        return 1;
-    }
+
     Config *config = g_new0(Config,1);
     char *path = findPath("conf.json");
     gboolean configLoaded = path ? catConf(path, config) : FALSE;

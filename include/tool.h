@@ -8,7 +8,7 @@ float getVal(const char *mode);
 
 void setVal(const char *mode, float val);
 
-void step(const char *mode, bool direction);
+void step(const char *mode, bool direction, float stepVal);
 
 #endif
 
