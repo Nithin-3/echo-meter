@@ -1,219 +1,151 @@
 # echo-meter
----
-Try to mimic function key
----
-A lightweight GTK4 layer-shell application that displays always-on-top real-time audio, brightness, and microphone level indicators.
+
+A lightweight on-screen display (OSD) and controller for brightness, volume, and microphone, written in C for Linux Wayland compositors (e.g., Hyprland). Offers both reading and adjustment of system settings, with a secure root helper for brightness control.
 
 ---
 
 ## Features
 
-- Always-on-top overlay using GTK4 and `gtk4-layer-shell`
-- Shows live system audio volume, screen brightness, and microphone levels
-- Configurable via JSON and CSS files in `~/.config/echo-meter` or system-wide `/usr/share/echo-meter`
-- Designed for Linux desktops with modern compositors (e.g., Wayland)
-- Fast, minimal, and unobtrusive
+- Written in C for maximum performance and minimal dependencies
+- Directly reads and writes brightness, volume, and microphone levels
+- Secure root helper included for writing brightness (only brightness requires root privileges)
+- On-screen display for:
+  - Brightness (with adjustment)
+  - Volume (with adjustment)
+  - Microphone (with adjustment)
+  - Caps Lock, Num Lock, and Mute states
+- Designed for modern Linux desktops using Wayland (tested on Hyprland)
+- Perfect for tiling window managers lacking native OSD/controls
 
 ---
 
-## Requirements
+## Why?
 
-GTK4, gtk4-layer-shell, and json-glib libraries.
+Most tiling window managers on Wayland lack native OSD or controls for volume, brightness, microphone, or lock states. echo-meter fills this gap, offering both user feedback and real control, with a focus on safety (root helper only for brightness write).
 
 ---
 
 ## Installation
 
-### Arch Linux
+### Dependencies
 
-You can install the dependencies on Arch Linux using:
+- `gtk4`
+- `gtk4-layer-shell`
+- C compiler (`gcc`, `clang`)
 
-```bash
-sudo pacman -S gtk4 gtk4-layer-shell json-glib
-```
+### Build
 
-A package may be available in the AUR. To build from source, ensure the dependencies above are installed.
-
----
-
-### Debian/Ubuntu
-
-```bash
-sudo apt install libgtk-4-dev libgtk-layer-shell-0.1-dev libjson-glib-dev
-```
-
----
-
-## Build
-
-To build the project, simply run:
-
-```bash
+```sh
+git clone https://github.com/Nithin-3/echo-meter.git
+cd echo-meter
 make
+```
+
+### Install root helper (for brightness control)
+
+```sh
+sudo make install-helper
+```
+
+### Run
+
+```sh
+./echo-meter
 ```
 
 ---
 
 ## Usage
 
-After building, you can run the application with:
-
-```bash
-make run
+```sh
+echo-meter [aud|mic|bri] (+|-) [0-100]
 ```
+- `aud` – Control output audio volume
+- `mic` – Control microphone volume
+- `bri` – Control screen brightness
 
-Or directly:
-
-```bash
-./echo-meter
-```
-
----
-
-## Installation (System-wide)
-
-To install the binary and assets:
-
-```bash
-sudo make install
-```
-
-This will:
-- Install the binary to `/usr/local/bin/echo-meter`
-- Copy assets to `/usr/share/echo-meter`
-
-You can then run `echo-meter` from anywhere.
-
----
-
-## Uninstall
-
-To remove the installed files and configuration:
-
-```bash
-sudo make uninstall
-```
+### Examples
+- Increase brightness by the configured step:
+  ```sh
+  echo-meter bri +
+  ```
+- Set volume to 35%:
+  ```sh
+  echo-meter aud 35
+  ```
+- Decrease microphone volume:
+  ```sh
+  echo-meter mic -
+  ```
 
 ---
 
 ## Configuration
 
-echo-meter is configurable via files in `~/.config/echo-meter` (user-specific) or `/usr/share/echo-meter` (system-wide):
+Configuration files are loaded from:
+- System-wide: `/usr/share/echo-meter`
+- User: `$HOME/.config/echo-meter`
+
+You can override system defaults by copying and editing files in your user config directory.
+
+### Files
+
+- `config.json` – Main configuration
+- `style.css` – Custom CSS for OSD appearance
 
 ### Example `config.json`
 
-> **Note:** Standard JSON does not support comments, but for clarity, comments are included here using `//`.  
-> If your parser does not support comments, remove the comment lines.
-
-```jsonc
+```json
 {
-  "orientation": "horizontal",           // "horizontal" or "vertical" layout for indicators
-  "invert-direction": false,             // If true, reverses the indicator direction
+  "orientation": "horizontal",           // default: "horizontal"
+  "invert-direction": false,             // default: false
 
   "window_position": {
     // Only use either x/y or vertical+horizontal+margin
     // If x and y are set, `has_explicit_pos = true`
-    "x": 40,                              // Custom: overrides alignment
-    "y": 30,                              // Custom: overrides alignment
+    "x": 40,                              // custom: overrides alignment
+    "y": 30,                              // custom: overrides alignment
 
-    "vertical": "top",                    // "top" (default, if x/y missing)
-    "horizontal": "center",               // "center" (default, if x/y missing)
-    "margin": 50                          // Default: 0 (only if align used)
+    "vertical": "top",                    // default: "top" (if x/y missing)
+    "horizontal": "center",               // default: "center" (if x/y missing)
+    "margin": 50                          // default: 0 (only if align used)
   },
 
+  "timeout": 5,                        // seconds before OSD disappears
 
   "icon": {
-    "sound": "🔊",                        // Sound indicator icon
-    "mute": "🔇",                         // Mute indicator icon
-    "brightness": "🌞",                   // Brightness indicator icon
-    "mic": "🎤",                          // Microphone indicator icon
-    "mic_off": "🙊"                       // Microphone-off indicator icon
+    "sound": "🔊",                         // icon for sound
+    "mute": "🔇",                          // icon for mute
+    "brightness": "🌞",                    // icon for brightness
+    "mic": "🎤",                           // icon for mic
+    "mic_off": "🙊"                        // icon for mic off
   },
 
   "system_info": {
-    "volume_tool": "wpctl",               // Tool for volume ("wpctl" default)
-    "brightness_tool": "brightnessctl",   // Tool for brightness ("brightnessctl" default)
-    "mic_tool": "pactl",                  // Tool for mic ("pactl" default)
-
-    "volume_step": 5,                     // Step size for volume changes
-    "brightness_step": 10,                // Step size for brightness changes
-    "mic_step": 3                         // Step size for mic changes
+    "volume_step": 5,                    // change step for volume
+    "brightness_step": 10,               // change step for brightness
+    "mic_step": 3                        // change step for mic
   }
 }
 ```
 
-- `orientation`: `"horizontal"` or `"vertical"` layout for indicators.
-- `invert-direction`: If true, reverses the indicator direction.
-- `window_position`: Controls the window's placement. If `x` and `y` are set, they take priority. Otherwise, the overlay is positioned using `vertical`, `horizontal`, and `margin`.
-- `timeout`: The indicator's auto-hide timeout in milliseconds.
-- `icon`: Unicode or emoji icons for each indicator.
-- `system_info`: Tools and step size for adjusting volume, brightness, and mic.
-
-### Example `style.css`
-
-```css
-#status-bar {
-    color: #019606;           /* Text color */
-    font-weight: bold;
-    font-size: 14px;
-    border-radius: 0;
-}
-
-#status-bar trough {
-    background-color: #222222; /* Optional: dark grey trough */
-    border-radius: 0;
-    min-height: 20px;
-}
-
-#status-bar trough progress {
-    background-color: #019606;
-    border-radius: 0;
-    min-height: 20px;
-}
-#progress-label {
-    color: rgba(1, 150, 6, 1);
-    font-weight: bold;
-    text-shadow: 0 0 5px #000000;
-}
-```
-
-- Customize colors, fonts, and layout by editing style.css.
-- You can copy the default configuration and CSS from `/usr/share/echo-meter` after install:
-
-```bash
-mkdir -p ~/.config/echo-meter
-cp /usr/share/echo-meter/config.json ~/.config/echo-meter/
-cp /usr/share/echo-meter/style.css ~/.config/echo-meter/
-```
-
-Edit these files to customize indicator order, colors, position, and more.
+- All fields are optional; defaults will be used if omitted.
+- For positioning, use either `x`/`y` or alignment (`vertical`, `horizontal`, `margin`).
 
 ---
 
-## Known Issues / Limitations
+## Styling
 
-- Only supports modern Linux desktops (e.g., Wayland compositors).
-- Features may vary depending on compositor and hardware support.
+Customize the appearance with `style.css` (see example in the repo or create your own).
 
 ---
 
-## Contributing
+## Security
 
-Contributions, bug reports, and suggestions are welcome!
-- Open an issue or pull request on GitHub.
-- Please follow the existing code style and include a description of your changes.
+- Only brightness writes require root, handled securely via a helper binary.
 
 ---
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-## Credits
-
-- Built using [GTK4](https://www.gtk.org/) and [gtk4-layer-shell](https://github.com/wmww/gtk-layer-shell)
-- Inspired by other minimal overlay tools for Linux
-
----
+[MIT](LICENSE)
