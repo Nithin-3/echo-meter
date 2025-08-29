@@ -6,6 +6,7 @@
 #include <poll.h>
 #include <string.h>
 #include <signal.h>
+#include "echo-meter.h"
 #define PRINT_KEY(key) puts(#key)
 #define MAX_DEVICES 32
 #define PATH_MAX_LEN 64
@@ -60,12 +61,37 @@ int main() {
                 while (read(fds[i].fd, &ev, sizeof(ev)) == sizeof(ev)) {
                     if (ev.type != EV_KEY || ev.value != 1) continue;
                     switch (ev.code) {
-                        case KEY_BRIGHTNESSUP: { PRINT_KEY(KEY_BRIGHTNESSUP); break; }
-                        case KEY_BRIGHTNESSDOWN: { PRINT_KEY(KEY_BRIGHTNESSDOWN); break; }
-                        case KEY_VOLUMEUP: { PRINT_KEY(KEY_VOLUMEUP); break; }
-                        case KEY_VOLUMEDOWN: { PRINT_KEY(KEY_VOLUMEDOWN); break; }
-                        case KEY_MUTE: { PRINT_KEY(KEY_MUTE); break; }
-                        case KEY_MICMUTE: { PRINT_KEY(KEY_MICMUTE); break; }
+                        case KEY_BRIGHTNESSUP: {
+                            PRINT_KEY(KEY_BRIGHTNESSUP);
+                            { char *argv[] = { "echo-meter", "bri", "+" }; invoke(3, argv); }
+                            break;
+                        }
+                        case KEY_BRIGHTNESSDOWN: {
+                            PRINT_KEY(KEY_BRIGHTNESSDOWN);
+                            { char *argv[] = { "echo-meter", "bri", "-" }; invoke(3, argv); }
+                            break;
+                        }
+                        case KEY_VOLUMEUP: {
+                            PRINT_KEY(KEY_VOLUMEUP);
+                            { char *argv[] = { "echo-meter", "aud", "+" }; invoke(3, argv); }
+                            break;
+                        }
+                        case KEY_VOLUMEDOWN: {
+                            PRINT_KEY(KEY_VOLUMEDOWN);
+                            { char *argv[] = { "echo-meter", "aud", "-" }; invoke(3, argv); }
+                            break;
+                        }
+                        case KEY_MUTE: {
+                            PRINT_KEY(KEY_MUTE);
+                            { char *argv[] = { "echo-meter", "aud" }; invoke(2, argv); }
+                            break;
+                        }
+                        case KEY_MICMUTE: {
+                            PRINT_KEY(KEY_MICMUTE);
+                            { char *argv[] = { "echo-meter", "mic" }; invoke(2, argv); }
+                            break;
+                        }
+
                         case KEY_FN: { PRINT_KEY(KEY_FN); break; }
                         case KEY_FN_ESC: { PRINT_KEY(KEY_FN_ESC); break; }
                         case KEY_FN_F1: { PRINT_KEY(KEY_FN_F1); break; }
@@ -80,14 +106,15 @@ int main() {
                         case KEY_FN_F10: { PRINT_KEY(KEY_FN_F10); break; }
                         case KEY_FN_F11: { PRINT_KEY(KEY_FN_F11); break; }
                         case KEY_FN_F12: { PRINT_KEY(KEY_FN_F12); break; }
+
                         case KEY_CAPSLOCK: {
                             PRINT_KEY(KEY_CAPSLOCK);
-                             printf("Caps Lock: %s\n", isON(fds[i].fd, LED_CAPSL) ? "ON" : "OFF");
+                            printf("Caps Lock: %s\n", isON(fds[i].fd, LED_CAPSL) ? "ON" : "OFF");
                             break;
                         }
                         case KEY_NUMLOCK: {
                             PRINT_KEY(KEY_NUMLOCK);
-                             printf("Num Lock: %s\n", isON(fds[i].fd, LED_NUML) ? "ON" : "OFF");
+                            printf("Num Lock: %s\n", isON(fds[i].fd, LED_NUML) ? "ON" : "OFF");
                             break;
                         }
                         case KEY_SCROLLLOCK: {

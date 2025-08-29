@@ -17,7 +17,7 @@ GtkWidget *globalWindow = NULL;
 GtkWidget *slider = NULL;
 static float lastChange = -1.0;
 static guint timeoutId = 0;
-static char *globalMode = NULL;
+static Type globalMode = INVALIDT;
 
 static void onDestroy(GtkWidget *widget, gpointer data) {
     (void)widget;
@@ -63,27 +63,29 @@ static void updateProgress(double val, const char *txt) {
 }
 
 static gboolean updateStatus(gpointer userData) {
-    if (slider == NULL || globalMode == NULL)
-        return G_SOURCE_CONTINUE;
+    if (slider == NULL || globalMode == INVALIDT) return G_SOURCE_CONTINUE;
     Config *config = (Config *)userData;
     float fraction = getVal(globalMode);
     char statusText[128] = "";
-
     if (lastChange != fraction) {
-        if (strcmp(globalMode, "aud") == 0) {
-            snprintf(statusText, sizeof(statusText), "%s %.0f%%", config->icon.sound, fraction * 100);
-        } else if (strcmp(globalMode, "bri") == 0) {
-            snprintf(statusText, sizeof(statusText), "%s %.0f%%", config->icon.brightness, fraction * 100);
-        } else if (strcmp(globalMode, "mic") == 0) {
-            snprintf(statusText, sizeof(statusText), "%s %.0f%%", config->icon.mic, fraction * 100);
-        } else {
-            snprintf(statusText, sizeof(statusText), "%.0f%%", fraction * 100);
+        switch (globalMode) {
+            case AUD:
+                snprintf(statusText, sizeof(statusText), "%s %.0f%%", config->icon.sound, fraction * 100);
+                break;
+            case BRI:
+                snprintf(statusText, sizeof(statusText), "%s %.0f%%", config->icon.brightness, fraction * 100);
+                break;
+            case MIC:
+                snprintf(statusText, sizeof(statusText), "%s %.0f%%", config->icon.mic, fraction * 100);
+                break;
+            default:
+                snprintf(statusText, sizeof(statusText), "%.0f%%", fraction * 100);
+                break;
         }
 
         updateProgress(fraction, statusText);
         lastChange = fraction;
-
-        g_print(MAGENTA "[UPDATE]" RESET " %s: %.0f%%\n", globalMode, fraction * 100);
+        g_print(MAGENTA "[UPDATE]" RESET " : %.0f%%\n", fraction * 100);
     }
 
     return G_SOURCE_CONTINUE;
@@ -170,7 +172,7 @@ static void onActivate(GtkApplication *app, gpointer userData) {
     gtk_box_append(GTK_BOX(box), rowBox);
     gtk_window_present(GTK_WINDOW(globalWindow));
 
-    g_print(GREEN "[INFO]" RESET " Application activated with mode: %s\n", globalMode);
+    g_print(GREEN "[INFO]" RESET " Application activated \n");
     g_timeout_add(100, updateStatus, config);
     resetTimer(config->timeout);
 }
@@ -206,11 +208,9 @@ bool validate_args(int argc, char *argv[]) {
         }
         value = atof(argv[3]);
     }
-    if (dir != -1) step(argv[1], dir, value);
+    if (dir != -1) step(parseType(argv[1]), dir, value);
     return true;
 }
-
-
 
 static int onCommandLine(GApplication *app, GApplicationCommandLine *cmdline, gpointer userData) {
     char **argv;
@@ -221,9 +221,8 @@ static int onCommandLine(GApplication *app, GApplicationCommandLine *cmdline, gp
         printf("Usage: %s [aud|mic|bri] (+|-) (0-100)\n", argv[0]);
         return 1;
     }
-    if(globalMode == NULL) g_application_activate(app);
-    if (globalMode) g_free(globalMode);
-    globalMode = g_strdup(argv[1]);
+    if(globalMode == INVALIDT) g_application_activate(app);
+    globalMode = parseType(argv[1]);
 
     return 0;
 }
@@ -250,8 +249,6 @@ int main(int argc, char **argv) {
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
 
-    if (globalMode) 
-        g_free(globalMode);
 
     return status;
 }

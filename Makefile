@@ -4,7 +4,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g `pkg-config --cflags gtk4 gtk4-layer-shell-0 json-glib-1.0`
 
 # Linker flags: pkg-config libs for GTK4 + others
-LDFLAGS = `pkg-config --libs gtk4 gtk4-layer-shell-0 json-glib-1.0`
+LDFLAGS = `pkg-config --libs gtk4 gtk4-layer-shell-0 json-glib-1.0` -lasound
 
 # Include directory for headers
 INCLUDES = -Iinclude
