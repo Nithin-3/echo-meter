@@ -6,7 +6,7 @@
 #include <poll.h>
 #include <string.h>
 #include <signal.h>
-#include "echo-meter.h"
+// #include "echo-meter.h"
 #define PRINT_KEY(key) puts(#key)
 #define MAX_DEVICES 32
 #define PATH_MAX_LEN 64
@@ -63,32 +63,26 @@ int main() {
                     switch (ev.code) {
                         case KEY_BRIGHTNESSUP: {
                             PRINT_KEY(KEY_BRIGHTNESSUP);
-                            { char *argv[] = { "echo-meter", "bri", "+" }; invoke(3, argv); }
                             break;
                         }
                         case KEY_BRIGHTNESSDOWN: {
                             PRINT_KEY(KEY_BRIGHTNESSDOWN);
-                            { char *argv[] = { "echo-meter", "bri", "-" }; invoke(3, argv); }
                             break;
                         }
                         case KEY_VOLUMEUP: {
                             PRINT_KEY(KEY_VOLUMEUP);
-                            { char *argv[] = { "echo-meter", "aud", "+" }; invoke(3, argv); }
                             break;
                         }
                         case KEY_VOLUMEDOWN: {
                             PRINT_KEY(KEY_VOLUMEDOWN);
-                            { char *argv[] = { "echo-meter", "aud", "-" }; invoke(3, argv); }
                             break;
                         }
                         case KEY_MUTE: {
                             PRINT_KEY(KEY_MUTE);
-                            { char *argv[] = { "echo-meter", "aud" }; invoke(2, argv); }
                             break;
                         }
                         case KEY_MICMUTE: {
                             PRINT_KEY(KEY_MICMUTE);
-                            { char *argv[] = { "echo-meter", "mic" }; invoke(2, argv); }
                             break;
                         }
 

@@ -16,14 +16,6 @@ static int catFile(const char *p,int *v){
     fclose(f);
     return r==1;
 }
-static int echoFile(const char *path,int *v){
-    FILE *f = fopen(path,"w");
-    if(!f){ perror("fopen"); return 0; }
-    if(fprintf(f,"%d\n",*v)<0){ perror("fprintf"); fclose(f); return 0; }
-    fclose(f);
-    return 1;
-}
-
 static float getBri(void){
     DIR *d=opendir("/sys/class/backlight/"); if(!d)return 0;
     struct dirent *dir; char path[128]; int max,crnt;
@@ -44,8 +36,9 @@ static int setBri(float level){
         if(strcmp(dir->d_name,".")==0||strcmp(dir->d_name,"..")==0) continue;
         snprintf(path,sizeof(path),"/sys/class/backlight/%s/max_brightness",dir->d_name);
         if(!catFile(path,&max)) continue;
-        snprintf(path,sizeof(path),"/sys/class/backlight/%s/brightness",dir->d_name);
-        val=(int)(level*max); if(!echoFile(path,&val)) continue;
+        val=(int)(level*max);
+        snprintf(path,sizeof(path),"/usr/share/echo-meter/write-brightness %s %d",dir->d_name,val);
+         if(!system(path)) continue;
         closedir(d); return 1;
     }
     closedir(d); return 0;

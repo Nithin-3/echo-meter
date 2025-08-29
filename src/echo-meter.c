@@ -237,7 +237,7 @@ int main(int argc, char **argv) {
         g_print(YELLOW "[WARN]" RESET " Could not load config file. Using defaults.\n");
         strcpy(config->orientation, "horizontal");
         config->hasExplicitPos = false;
-        strcpy(config->verticalAlign, "center");
+        strcpy(config->verticalAlign, "top");
         strcpy(config->horizontalAlign, "center");
         config->margin = 0;
     }
