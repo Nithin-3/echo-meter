@@ -23,7 +23,7 @@ static float getBri(void){
         if(strcmp(dir->d_name,".")==0||strcmp(dir->d_name,"..")==0) continue;
         snprintf(path,sizeof(path),"/sys/class/backlight/%s/max_brightness",dir->d_name);
         if(!catFile(path,&max)) continue;
-        snprintf(path,sizeof(path),"/sys/class/backlight/%s/actual_brightness",dir->d_name);
+        snprintf(path,sizeof(path),"/sys/class/backlight/%s/brightness",dir->d_name);
         if(!catFile(path,&crnt)) continue;
         closedir(d); return (float)crnt/max;
     }
