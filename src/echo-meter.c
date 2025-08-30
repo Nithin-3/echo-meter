@@ -94,11 +94,9 @@ static gboolean updateStatus(gpointer userData) {
     const char *ico = icon(globalMode, (Config *)userData);
     if ((globalMode == INVALIDT || lastChange == fraction) && strcmp(ico, lastIcon) == 0) return G_SOURCE_CONTINUE;
     if (fraction < 0.0f) {
-        if (slider && gtk_widget_get_visible(slider)) {
-            GtkWidget *label = g_object_get_data(G_OBJECT(slider), "progress-label");
-            if (label) gtk_label_set_text(GTK_LABEL(label), ico);
-            gtk_widget_hide(slider);
-        }
+        GtkWidget *label = g_object_get_data(G_OBJECT(slider), "progress-label");
+        if (label) gtk_label_set_text(GTK_LABEL(label), ico);
+        if (gtk_widget_get_visible(slider)) gtk_widget_hide(slider);
         return G_SOURCE_CONTINUE;
     }
     if (slider && !gtk_widget_get_visible(slider)) gtk_widget_show(slider);
