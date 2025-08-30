@@ -13,7 +13,7 @@
     "margin": 50                          // default: 0 (only if align used)
   },
 
-  "timeout": 1500,                        // custom (default assumed in code elsewhere)
+  "timeout": 5,                        // custom (default assumed in code elsewhere)
 
   "icon": {
     "sound": "🔊",                         // default: ""

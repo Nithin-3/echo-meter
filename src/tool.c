@@ -45,66 +45,104 @@ static int setBri(float level){
 }
 
 // ---------- ALSA helper ----------
-static int mixerElem(int isPlay,int isGet,float *val,int isMute,int muteState){
-    snd_mixer_t *h=NULL; snd_mixer_elem_t *e=NULL;
-    if(snd_mixer_open(&h,0)<0)return 0;
-    if(snd_mixer_attach(h,"default")<0){snd_mixer_close(h);return 0;}
-    if(snd_mixer_selem_register(h,NULL,NULL)<0){snd_mixer_close(h);return 0;}
-    if(snd_mixer_load(h)<0){snd_mixer_close(h);return 0;}
-    int ok=0;
-    for(e=snd_mixer_first_elem(h);e;e=snd_mixer_elem_next(e)){
-        if(!snd_mixer_selem_is_active(e)) continue;
-        if(isGet && val){
-            if(isPlay && snd_mixer_selem_has_playback_volume(e)){
-                long min,max,v; snd_mixer_selem_get_playback_volume_range(e,&min,&max);
-                snd_mixer_selem_get_playback_volume(e,SND_MIXER_SCHN_FRONT_LEFT,&v);
-                *val=(float)(v-min)/(max-min); ok=1; break;
-            } else if(!isPlay && snd_mixer_selem_has_capture_volume(e)){
-                long min,max,v; snd_mixer_selem_get_capture_volume_range(e,&min,&max);
-                snd_mixer_selem_get_capture_volume(e,SND_MIXER_SCHN_FRONT_LEFT,&v);
-                *val=(float)(v-min)/(max-min); ok=1; break;
+static int mixerElem(int isPlay, int isGet, float *val, int isMute, int muteState, int *muteResult) {
+    snd_mixer_t *h = NULL;
+    snd_mixer_elem_t *e = NULL;
+    if (snd_mixer_open(&h, 0) < 0) return 0;
+    if (snd_mixer_attach(h, "default") < 0) { snd_mixer_close(h); return 0; }
+    if (snd_mixer_selem_register(h, NULL, NULL) < 0) { snd_mixer_close(h); return 0; }
+    if (snd_mixer_load(h) < 0) { snd_mixer_close(h); return 0; }
+
+    int ok = 0;
+    for (e = snd_mixer_first_elem(h); e; e = snd_mixer_elem_next(e)) {
+        if (!snd_mixer_selem_is_active(e)) continue;
+
+        // --- GET volume ---
+        if (isGet && val) {
+            if (isPlay && snd_mixer_selem_has_playback_volume(e)) {
+                long min, max, v;
+                snd_mixer_selem_get_playback_volume_range(e, &min, &max);
+                snd_mixer_selem_get_playback_volume(e, SND_MIXER_SCHN_FRONT_LEFT, &v);
+                *val = (float)(v - min) / (max - min);
+                ok = 1;
+                break;
+            } else if (!isPlay && snd_mixer_selem_has_capture_volume(e)) {
+                long min, max, v;
+                snd_mixer_selem_get_capture_volume_range(e, &min, &max);
+                snd_mixer_selem_get_capture_volume(e, SND_MIXER_SCHN_FRONT_LEFT, &v);
+                *val = (float)(v - min) / (max - min);
+                ok = 1;
+                break;
             }
         }
-        if(!isGet && val){
-            long min,max,v;
-            if(isPlay && snd_mixer_selem_has_playback_volume(e)){
-                snd_mixer_selem_get_playback_volume_range(e,&min,&max);
+
+        // --- SET volume ---
+        if (!isGet && val) {
+            long min, max, v;
+            if (isPlay && snd_mixer_selem_has_playback_volume(e)) {
+                snd_mixer_selem_get_playback_volume_range(e, &min, &max);
                 v = (long)(clamp(*val) * (max - min) + min);
-                snd_mixer_selem_set_playback_volume(e,SND_MIXER_SCHN_FRONT_LEFT,v);
-                snd_mixer_selem_set_playback_volume(e,SND_MIXER_SCHN_FRONT_RIGHT,v); ok=1; break;
-            } else if(!isPlay && snd_mixer_selem_has_capture_volume(e)){
-                snd_mixer_selem_get_capture_volume_range(e,&min,&max);
+                snd_mixer_selem_set_playback_volume(e, SND_MIXER_SCHN_FRONT_LEFT, v);
+                snd_mixer_selem_set_playback_volume(e, SND_MIXER_SCHN_FRONT_RIGHT, v);
+                ok = 1;
+                break;
+            } else if (!isPlay && snd_mixer_selem_has_capture_volume(e)) {
+                snd_mixer_selem_get_capture_volume_range(e, &min, &max);
                 v = (long)(clamp(*val) * (max - min) + min);
-                snd_mixer_selem_set_capture_volume(e,SND_MIXER_SCHN_FRONT_LEFT,v);
-                snd_mixer_selem_set_capture_volume(e,SND_MIXER_SCHN_FRONT_RIGHT,v); ok=1; break;
+                snd_mixer_selem_set_capture_volume(e, SND_MIXER_SCHN_FRONT_LEFT, v);
+                snd_mixer_selem_set_capture_volume(e, SND_MIXER_SCHN_FRONT_RIGHT, v);
+                ok = 1;
+                break;
             }
         }
-        if(isMute>=0){
-            int sw=!muteState;
-            if(isPlay && snd_mixer_selem_has_playback_switch(e)){
-                snd_mixer_selem_set_playback_switch(e,SND_MIXER_SCHN_FRONT_LEFT,sw);
-                snd_mixer_selem_set_playback_switch(e,SND_MIXER_SCHN_FRONT_RIGHT,sw); ok=1; break;
-            } else if(!isPlay && snd_mixer_selem_has_capture_switch(e)){
-                snd_mixer_selem_set_capture_switch(e,SND_MIXER_SCHN_FRONT_LEFT,sw);
-                snd_mixer_selem_set_capture_switch(e,SND_MIXER_SCHN_FRONT_RIGHT,sw); ok=1; break;
+
+        // --- GET mute ---
+        if (isGet && !val && isMute == 0 && muteResult) {
+            int sw;
+            if (isPlay && snd_mixer_selem_has_playback_switch(e)) {
+                snd_mixer_selem_get_playback_switch(e, SND_MIXER_SCHN_FRONT_LEFT, &sw);
+                *muteResult = sw ? 0 : 1; // 0=unmuted, 1=muted
+                ok = 1;
+                break;
+            } else if (!isPlay && snd_mixer_selem_has_capture_switch(e)) {
+                snd_mixer_selem_get_capture_switch(e, SND_MIXER_SCHN_FRONT_LEFT, &sw);
+                *muteResult = sw ? 0 : 1;
+                ok = 1;
+                break;
+            }
+        }
+
+        // --- SET mute ---
+        if (isMute > 0) {
+            int sw = !muteState; // muteState=1→mute, 0→unmute
+            if (isPlay && snd_mixer_selem_has_playback_switch(e)) {
+                snd_mixer_selem_set_playback_switch(e, SND_MIXER_SCHN_FRONT_LEFT, sw);
+                snd_mixer_selem_set_playback_switch(e, SND_MIXER_SCHN_FRONT_RIGHT, sw);
+                ok = 1;
+                break;
+            } else if (!isPlay && snd_mixer_selem_has_capture_switch(e)) {
+                snd_mixer_selem_set_capture_switch(e, SND_MIXER_SCHN_FRONT_LEFT, sw);
+                snd_mixer_selem_set_capture_switch(e, SND_MIXER_SCHN_FRONT_RIGHT, sw);
+                ok = 1;
+                break;
             }
         }
     }
+
     snd_mixer_close(h);
     return ok;
 }
 
 // ---------- Public API ----------
-float getVol(void){ float v=0; return mixerElem(1,1,&v,-1,0)?v:-1.0f; }
-int setVol(float l){ return mixerElem(1,0,&l,-1,0); }
-int getMute(void){ return mixerElem(1,1,NULL,0,0)?0:1; }
-int setMute(int s){ return mixerElem(1,-1,NULL,1,s); }
+float getVol(void) { float v = 0; return mixerElem(1, 1, &v, -1, 0, NULL) ? v : -1.0f; }
+int   setVol(float l) { return mixerElem(1, 0, &l, -1, 0, NULL); }
+int   getMute(void) { int m = -1; return mixerElem(1, 1, NULL, 0, 0, &m) ? m : -1; }
+int   setMute(int s) { return mixerElem(1, -1, NULL, 1, s, NULL); }
 
-float getMicVol(void){ float v=0; return mixerElem(0,1,&v,-1,0)?v:-1.0f; }
-int setMicVol(float l){ return mixerElem(0,0,&l,-1,0); }
-int getMicMute(void){ return mixerElem(0,1,NULL,0,0)?0:1; }
-int setMicMute(int s){ return mixerElem(0,-1,NULL,1,s); }
-
+float getMicVol(void) { float v = 0; return mixerElem(0, 1, &v, -1, 0, NULL) ? v : -1.0f; }
+int   setMicVol(float l) { return mixerElem(0, 0, &l, -1, 0, NULL); }
+int   getMicMute(void) { int m = -1; return mixerElem(0, 1, NULL, 0, 0, &m) ? m : -1; }
+int   setMicMute(int s) { return mixerElem(0, -1, NULL, 1, s, NULL); }
 
 static Sys *getCachedSys() {
     static Sys sys;
@@ -124,7 +162,7 @@ float getVal(const Type mode) {
         case AUD: return getVol();
         case MIC: return getMicVol();
         case BRI: return getBri();
-        default: return 0.0f;
+        default: return -1.0f;
     }
 }
 

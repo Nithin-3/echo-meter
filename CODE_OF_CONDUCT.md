@@ -26,7 +26,7 @@ Examples of unacceptable behavior by participants include:
 
 ## Our Focus
 
-This project is for Linux users and contributors. Please avoid off-topic discussions, such as promotion of BSD support. Let’s keep the focus on making echo-meter great for all Linux environments, especially tiling window managers.
+This project is for Linux users and contributors. Please avoid off-topic discussions, Let’s keep the focus on making echo-meter great for all Linux environments, especially tiling window managers.
 
 ## Reporting Issues
 

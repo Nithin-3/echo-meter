@@ -15,7 +15,8 @@
 
 GtkWidget *globalWindow = NULL;
 GtkWidget *slider = NULL;
-static float lastChange = -1.0;
+static float lastChange = -1.1;
+static char lastIcon[32] = "";
 static guint timeoutId = 0;
 static Type globalMode = INVALIDT;
 
@@ -62,31 +63,51 @@ static void updateProgress(double val, const char *txt) {
     }
 }
 
-static gboolean updateStatus(gpointer userData) {
-    if (slider == NULL || globalMode == INVALIDT) return G_SOURCE_CONTINUE;
-    Config *config = (Config *)userData;
-    float fraction = getVal(globalMode);
-    char statusText[128] = "";
-    if (lastChange != fraction) {
-        switch (globalMode) {
-            case AUD:
-                snprintf(statusText, sizeof(statusText), "%s %.0f%%", config->icon.sound, fraction * 100);
-                break;
-            case BRI:
-                snprintf(statusText, sizeof(statusText), "%s %.0f%%", config->icon.brightness, fraction * 100);
-                break;
-            case MIC:
-                snprintf(statusText, sizeof(statusText), "%s %.0f%%", config->icon.mic, fraction * 100);
-                break;
-            default:
-                snprintf(statusText, sizeof(statusText), "%.0f%%", fraction * 100);
-                break;
-        }
+static const char* icon(Type which, const Config *conf) {
+    switch (which) {
+        case BRI:
+            return conf->icon.brightness;
 
-        updateProgress(fraction, statusText);
-        lastChange = fraction;
-        g_print(MAGENTA "[UPDATE]" RESET " : %.0f%%\n", fraction * 100);
+        case MIC:
+            return getMicMute() ? conf->icon.micOff : conf->icon.mic;
+
+        case AUD:
+            return getMute() ? conf->icon.mute : conf->icon.sound;
+
+        case CAP:
+            return "[CAP]"; // placeholder
+
+        case NUM:
+            return "[NUM]"; // placeholder
+
+        case SCR:
+            return "[SCR]"; // placeholder
+
+        case INVALIDT:
+        default:
+            return ""; // safe fallback
     }
+}
+
+static gboolean updateStatus(gpointer userData) {
+    float fraction = getVal(globalMode);
+    const char *ico = icon(globalMode, (Config *)userData);
+    if ((globalMode == INVALIDT || lastChange == fraction) && strcmp(ico, lastIcon) == 0) return G_SOURCE_CONTINUE;
+    if (fraction < 0.0f) {
+        if (slider && gtk_widget_get_visible(slider)) {
+            GtkWidget *label = g_object_get_data(G_OBJECT(slider), "progress-label");
+            if (label) gtk_label_set_text(GTK_LABEL(label), ico);
+            gtk_widget_hide(slider);
+        }
+        return G_SOURCE_CONTINUE;
+    }
+    if (slider && !gtk_widget_get_visible(slider)) gtk_widget_show(slider);
+    char statusText[128] = "";
+    snprintf(statusText, sizeof(statusText), "%s %.0f%%", ico, fraction * 100);
+    updateProgress(fraction, statusText);
+    lastChange = fraction;
+    snprintf(lastIcon, sizeof(lastIcon), "%s", ico);
+    g_print(MAGENTA "[UPDATE]" RESET " : %.0f%%\n", fraction * 100);
 
     return G_SOURCE_CONTINUE;
 }
@@ -142,8 +163,6 @@ static void onActivate(GtkApplication *app, gpointer userData) {
     GtkWidget *box = gtk_box_new(orient, 10);
     gtk_window_set_child(GTK_WINDOW(globalWindow), box);
 
-    GtkWidget *rowBox = gtk_box_new(orient, 5);
-
     slider = gtk_scale_new_with_range(orient, 0.0, 1.0, 0.01);
     gtk_scale_set_draw_value(GTK_SCALE(slider), FALSE);
     gtk_widget_set_name(slider, "status-slider");
@@ -157,23 +176,22 @@ static void onActivate(GtkApplication *app, gpointer userData) {
     if (orient == GTK_ORIENTATION_VERTICAL) {
         gtk_widget_set_size_request(slider, 25, 100);
         gtk_range_set_inverted(GTK_RANGE(slider), !config->invertDirection);
-        gtk_box_append(GTK_BOX(rowBox), slider);
-        gtk_box_append(GTK_BOX(rowBox), label);
+        gtk_box_append(GTK_BOX(box), slider);
+        gtk_box_append(GTK_BOX(box), label);
     }else{
         gtk_widget_set_size_request(slider, 100, 25);
         gtk_range_set_inverted(GTK_RANGE(slider), config->invertDirection);
-        gtk_box_append(GTK_BOX(rowBox), slider);
-        gtk_box_append(GTK_BOX(rowBox), label);
+        gtk_box_append(GTK_BOX(box), slider);
+        gtk_box_append(GTK_BOX(box), label);
     }
 
 
     g_object_set_data(G_OBJECT(slider), "progress-label", label);
 
-    gtk_box_append(GTK_BOX(box), rowBox);
     gtk_window_present(GTK_WINDOW(globalWindow));
 
     g_print(GREEN "[INFO]" RESET " Application activated \n");
-    g_timeout_add(100, updateStatus, config);
+    g_timeout_add(200, updateStatus, config);
     resetTimer(config->timeout);
 }
 
@@ -188,7 +206,7 @@ bool validate_percentage(const char *s) {
 
 bool validate_args(int argc, char *argv[]) {
     if (argc < 2) return false;
-    if (!(strcmp(argv[1], "aud") == 0 || strcmp(argv[1], "mic") == 0 || strcmp(argv[1], "bri") == 0)) return false;
+    if (!(strcmp(argv[1], "aud") == 0 || strcmp(argv[1], "mic") == 0  || strcmp(argv[1], "cap") == 0 || strcmp(argv[1], "num") == 0|| strcmp(argv[1], "bri") == 0)) return false;
     float value = 0.0;
     int dir = -1;
     if (argc >= 3) {
@@ -226,7 +244,6 @@ static int onCommandLine(GApplication *app, GApplicationCommandLine *cmdline, gp
 
     return 0;
 }
-
 int main(int argc, char **argv) {
 
     Config *config = g_new0(Config,1);
