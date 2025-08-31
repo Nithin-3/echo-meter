@@ -59,7 +59,8 @@ obj/
 
 # Executable
 echo-meter
-
+echolis
+write-brightness
 # Backup files
 *~
 *.bak
