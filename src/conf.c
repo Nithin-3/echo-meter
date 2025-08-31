@@ -18,14 +18,6 @@ static bool isValidHorizontalAlign(const char *val) {
     return (strcmp(val, "left") == 0 || strcmp(val, "right") == 0 || strcmp(val, "center") == 0);
 }
 
-static bool isValidTool(const char *val, const char *type) {
-    if (strcmp(type, "volume") == 0 || strcmp(type, "mic") == 0)
-        return (strcmp(val, "pactl") == 0 || strcmp(val, "wpctl") == 0);
-    if (strcmp(type, "brightness") == 0)
-        return (strcmp(val, "brightnessctl") == 0);
-    return false;
-}
-
 static int clampStep(int val) {
     return (val >= 0 && val <= 50) ? val : -1;
 }
@@ -53,6 +45,12 @@ bool catConf(const char *path, Config *config) {
     config->icon.brightness[0] = '\0';
     config->icon.mic[0] = '\0';
     config->icon.micOff[0] = '\0';
+    config->icon.capslockON[0] = '\0';
+    config->icon.capslockOFF[0] = '\0';
+    config->icon.numlockON[0] = '\0';
+    config->icon.numlockOFF[0] = '\0';
+    config->icon.scrolllockON[0] = '\0';
+    config->icon.scrolllockOFF[0] = '\0';
 
     // Parse JSON config
     GError *error = NULL;
@@ -150,6 +148,30 @@ bool catConf(const char *path, Config *config) {
             strncpy(config->icon.micOff, json_object_get_string_member(iconObj, "mic_off"), sizeof(config->icon.micOff) - 1);
             config->icon.micOff[sizeof(config->icon.micOff) - 1] = '\0';
         }
+        if (json_object_has_member(iconObj, "capslock_on")) {
+            strncpy(config->icon.capslockON, json_object_get_string_member(iconObj, "capslock_on"), sizeof(config->icon.capslockON) - 1);
+            config->icon.capslockON[sizeof(config->icon.capslockON) - 1] = '\0';
+        }
+        if (json_object_has_member(iconObj, "capslock_off")) {
+            strncpy(config->icon.capslockOFF, json_object_get_string_member(iconObj, "capslock_off"), sizeof(config->icon.capslockOFF) - 1);
+            config->icon.capslockOFF[sizeof(config->icon.capslockOFF) - 1] = '\0';
+        }
+        if (json_object_has_member(iconObj, "numlock_on")) {
+            strncpy(config->icon.numlockON, json_object_get_string_member(iconObj, "numlock_on"), sizeof(config->icon.numlockON) - 1);
+            config->icon.numlockON[sizeof(config->icon.numlockON) - 1] = '\0';
+        }
+        if (json_object_has_member(iconObj, "numlock_off")) {
+            strncpy(config->icon.numlockOFF, json_object_get_string_member(iconObj, "numlock_off"), sizeof(config->icon.numlockOFF) - 1);
+            config->icon.numlockOFF[sizeof(config->icon.numlockOFF) - 1] = '\0';
+        }
+        if (json_object_has_member(iconObj, "scrolllock_on")) {
+            strncpy(config->icon.scrolllockON, json_object_get_string_member(iconObj, "scrolllock_on"), sizeof(config->icon.scrolllockON) - 1);
+            config->icon.scrolllockON[sizeof(config->icon.scrolllockON) - 1] = '\0';
+        }
+        if (json_object_has_member(iconObj, "scrolllock_off")) {
+            strncpy(config->icon.scrolllockOFF, json_object_get_string_member(iconObj, "scrolllock_off"), sizeof(config->icon.scrolllockOFF) - 1);
+            config->icon.scrolllockOFF[sizeof(config->icon.scrolllockOFF) - 1] = '\0';
+        }
     }
 
     g_object_unref(parser);
@@ -157,16 +179,6 @@ bool catConf(const char *path, Config *config) {
 }
 
 bool catSys(const char *path, Sys *sys) {
-    // Set default values before JSON parsing
-    strncpy(sys->volumeTool, "wpctl", sizeof(sys->volumeTool) - 1);
-    sys->volumeTool[sizeof(sys->volumeTool) - 1] = '\0';
-
-    strncpy(sys->brightnessTool, "brightnessctl", sizeof(sys->brightnessTool) - 1);
-    sys->brightnessTool[sizeof(sys->brightnessTool) - 1] = '\0';
-
-    strncpy(sys->micTool, "pactl", sizeof(sys->micTool) - 1);
-    sys->micTool[sizeof(sys->micTool) - 1] = '\0';
-
     sys->volumeStep = 5;
     sys->brightnessStep = 10;
     sys->micStep = 3;
@@ -193,24 +205,6 @@ bool catSys(const char *path, Sys *sys) {
 
     if (json_object_has_member(rootObj, "system_info")) {
         JsonObject *sysObj = json_object_get_object_member(rootObj, "system_info");
-
-        const char *vol_tool = json_object_get_string_member_with_default(sysObj, "volumeTool", sys->volumeTool);
-        if (isValidTool(vol_tool, "volume")) {
-            strncpy(sys->volumeTool, vol_tool, sizeof(sys->volumeTool) - 1);
-            sys->volumeTool[sizeof(sys->volumeTool) - 1] = '\0';
-        }
-
-        const char *bri_tool = json_object_get_string_member_with_default(sysObj, "brightnessTool", sys->brightnessTool);
-        if (isValidTool(bri_tool, "brightness")) {
-            strncpy(sys->brightnessTool, bri_tool, sizeof(sys->brightnessTool) - 1);
-            sys->brightnessTool[sizeof(sys->brightnessTool) - 1] = '\0';
-        }
-
-        const char *micTool = json_object_get_string_member_with_default(sysObj, "micTool", sys->micTool);
-        if (isValidTool(micTool, "mic")) {
-            strncpy(sys->micTool, micTool, sizeof(sys->micTool) - 1);
-            sys->micTool[sizeof(sys->micTool) - 1] = '\0';
-        }
 
         int vStep = json_object_get_int_member(sysObj, "volume_step");
         if (json_object_has_member(sysObj, "volume_step") && clampStep(vStep) != -1)

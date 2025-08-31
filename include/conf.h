@@ -9,6 +9,12 @@ typedef struct {
     char brightness[32];
     char mic[32];
     char micOff[32];
+    char capslockON[32];
+    char capslockOFF[32];
+    char numlockON[32];
+    char numlockOFF[32];
+    char scrolllockON[32];
+    char scrolllockOFF[32];
 } IconConfig;
 typedef struct {
     char volumeTool[32], brightnessTool[32], micTool[32];

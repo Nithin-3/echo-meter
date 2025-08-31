@@ -1,21 +1,31 @@
 
-#status-bar {
-    color: #019606;           /* Text color */
-    font-weight: bold;
-    font-size: 14px;
-    border-radius: 0;
+window {
+    background-color: transparent;
 }
 
-#status-bar trough {
-    background-color: #222222; /* Optional: dark grey trough */
-    border-radius: 0;
-    min-height: 20px;
+#status-slider {
+    background: transparent;
+    border-radius: 5px;
+    padding: 2px;
 }
 
-#status-bar trough progress {
-    background-color: #019606;
-    border-radius: 0;
-    min-height: 20px;
+#status-slider highlight {
+    background: rgba(1, 150, 6, 1);
+    border-radius: 5px;
+}
+
+#status-slider trough {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    min-height: 8px;
+}
+
+#status-slider slider {
+    border-radius: 50%;
+    background:rgba(1, 150, 6, 1);
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    margin: -5px 0;
 }
 #progress-label {
     color: rgba(1, 150, 6, 1);

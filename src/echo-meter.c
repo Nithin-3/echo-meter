@@ -75,22 +75,22 @@ static const char* icon(Type which, const Config *conf) {
         case AUD:
             return getMute() ? conf->icon.mute : conf->icon.sound;
         case CAP_ON:
-            return "[CAP ON]"; // placeholder
+            return conf->icon.capslockON;
 
         case NUM_ON:
-            return "[NUM ON]"; // placeholder
+            return conf->icon.numlockON;
 
         case SCR_ON:
-            return "[SCR ON]"; // placeholder
+            return conf->icon.scrolllockON;
 
         case CAP:
-            return "[CAP OFF]"; // placeholder
+            return conf->icon.capslockOFF;
 
         case NUM:
-            return "[NUM OFF]"; // placeholder
+            return conf->icon.numlockOFF;
 
         case SCR:
-            return "[SCR OFF]"; // placeholder
+            return conf->icon.scrolllockOFF;
 
         case INVALIDT:
         default:

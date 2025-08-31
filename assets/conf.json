@@ -1,9 +1,16 @@
 {
-  "icon": {
-    "sound": "🔊",
-    "mute": "🔇",
-    "brightness": "🌞",
-    "mic": "🎤",
-    "mic_off": "🙊"
-  }
+    "icon": {
+        "sound": "󰕾 ",
+        "mute": "󰝟 ",
+        "brightness": "󰃠 ",
+        "mic": "󰍬 ",
+        "mic_off": "󰍭 ",
+        "capslock_on": "󰁂",
+        "capslock_off": "󰁅 ",
+        "numlock_on": "󰁃",
+        "numlock_off": "󰁆 ",
+        "scrolllock_on": "󰁄 ",
+        "scrolllock_off": "󰁇 "
+    }
 }
+
