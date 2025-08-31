@@ -6,8 +6,8 @@
 #include <poll.h>
 #include <string.h>
 #include <signal.h>
-// #include "echo-meter.h"
-#define PRINT_KEY(key) puts(#key)
+#include <pthread.h>
+#include <stdlib.h>
 #define MAX_DEVICES 32
 #define PATH_MAX_LEN 64
 
@@ -32,6 +32,22 @@ int isON(int fd, int which) {
     return !(leds & (1 << which));
 }
 
+void* echoMeter(void* cmd) {
+    system((char*) cmd);
+    return NULL;
+}
+
+void runCommand(const char* cmd) {
+    pthread_t thread;
+    // strdup() so each thread gets its own copy of cmd
+    char* arg = strdup(cmd);
+    if (pthread_create(&thread, NULL, echoMeter, arg) == 0) {
+        pthread_detach(thread); // auto-cleanup thread (no join needed)
+    } else {
+        perror("pthread_create failed");
+        free(arg);
+    }
+}
 
 int main() {
     struct pollfd fds[MAX_DEVICES];
@@ -61,67 +77,35 @@ int main() {
                 while (read(fds[i].fd, &ev, sizeof(ev)) == sizeof(ev)) {
                     if (ev.type != EV_KEY || ev.value != 1) continue;
                     switch (ev.code) {
-                        case KEY_BRIGHTNESSUP: {
-                            PRINT_KEY(KEY_BRIGHTNESSUP);
-                            break;
-                        }
-                        case KEY_BRIGHTNESSDOWN: {
-                            PRINT_KEY(KEY_BRIGHTNESSDOWN);
-                            break;
-                        }
-                        case KEY_VOLUMEUP: {
-                            PRINT_KEY(KEY_VOLUMEUP);
-                            break;
-                        }
-                        case KEY_VOLUMEDOWN: {
-                            PRINT_KEY(KEY_VOLUMEDOWN);
-                            break;
-                        }
-                        case KEY_MUTE: {
-                            PRINT_KEY(KEY_MUTE);
-                            break;
-                        }
-                        case KEY_MICMUTE: {
-                            PRINT_KEY(KEY_MICMUTE);
-                            break;
-                        }
-
-                        case KEY_FN: { PRINT_KEY(KEY_FN); break; }
-                        case KEY_FN_ESC: { PRINT_KEY(KEY_FN_ESC); break; }
-                        case KEY_FN_F1: { PRINT_KEY(KEY_FN_F1); break; }
-                        case KEY_FN_F2: { PRINT_KEY(KEY_FN_F2); break; }
-                        case KEY_FN_F3: { PRINT_KEY(KEY_FN_F3); break; }
-                        case KEY_FN_F4: { PRINT_KEY(KEY_FN_F4); break; }
-                        case KEY_FN_F5: { PRINT_KEY(KEY_FN_F5); break; }
-                        case KEY_FN_F6: { PRINT_KEY(KEY_FN_F6); break; }
-                        case KEY_FN_F7: { PRINT_KEY(KEY_FN_F7); break; } 
-                        case KEY_FN_F8: { PRINT_KEY(KEY_FN_F8); break; }
-                        case KEY_FN_F9: { PRINT_KEY(KEY_FN_F9); break; }
-                        case KEY_FN_F10: { PRINT_KEY(KEY_FN_F10); break; }
-                        case KEY_FN_F11: { PRINT_KEY(KEY_FN_F11); break; }
-                        case KEY_FN_F12: { PRINT_KEY(KEY_FN_F12); break; }
-
-                        case KEY_CAPSLOCK: {
-                            PRINT_KEY(KEY_CAPSLOCK);
-                            printf("Caps Lock: %s\n", isON(fds[i].fd, LED_CAPSL) ? "ON" : "OFF");
-                            break;
-                        }
-                        case KEY_NUMLOCK: {
-                            PRINT_KEY(KEY_NUMLOCK);
-                            printf("Num Lock: %s\n", isON(fds[i].fd, LED_NUML) ? "ON" : "OFF");
-                            break;
-                        }
-                        case KEY_SCROLLLOCK: {
-                            PRINT_KEY(KEY_SCROLLLOCK);
-                            printf("Scroll Lock: %s\n", isON(fds[i].fd, LED_SCROLLL) ? "ON" : "OFF");
-                            break;
-                        }
-                        case KEY_PLAYPAUSE: { PRINT_KEY(KEY_PLAYPAUSE); break; }
-                        case KEY_STOPCD: { PRINT_KEY(KEY_STOPCD); break; }
-                        case KEY_NEXTSONG: { PRINT_KEY(KEY_NEXTSONG); break; }
-                        case KEY_PREVIOUSSONG: { PRINT_KEY(KEY_PREVIOUSSONG); break; }
-                        case KEY_REWIND: { PRINT_KEY(KEY_REWIND); break; }
-                        case KEY_FASTFORWARD: { PRINT_KEY(KEY_FASTFORWARD); break; }
+                        case KEY_BRIGHTNESSUP: runCommand("echo-meter bri +"); break;
+                        case KEY_BRIGHTNESSDOWN: runCommand("echo-meter bri -"); break;
+                        case KEY_VOLUMEUP: runCommand("echo-meter aud +"); break;
+                        case KEY_VOLUMEDOWN: runCommand("echo-meter aud -"); break;
+                        case KEY_MUTE: runCommand("echo-meter aud"); break;
+                        case KEY_MICMUTE: runCommand("echo-meter mic"); break;
+                        case KEY_CAPSLOCK: runCommand(isON(fds[i].fd, LED_CAPSL)?"echo-meter capon":"echo-meter cap"); break;
+                        case KEY_NUMLOCK:  runCommand(isON(fds[i].fd, LED_NUML)?"echo-meter numon":"echo-meter num"); break;
+                        case KEY_SCROLLLOCK: runCommand(isON(fds[i].fd, LED_SCROLLL)?"echo-meter scron":"echo-meter scr"); break;
+                        case KEY_FN: {  break; }
+                        case KEY_FN_ESC: {  break; }
+                        case KEY_FN_F1: {  break; }
+                        case KEY_FN_F2: {  break; }
+                        case KEY_FN_F3: {  break; }
+                        case KEY_FN_F4: {  break; }
+                        case KEY_FN_F5: {  break; }
+                        case KEY_FN_F6: {  break; }
+                        case KEY_FN_F7: {  break; } 
+                        case KEY_FN_F8: {  break; }
+                        case KEY_FN_F9: {  break; }
+                        case KEY_FN_F10: {  break; }
+                        case KEY_FN_F11: {  break; }
+                        case KEY_FN_F12: {  break; }
+                        case KEY_PLAYPAUSE: {  break; }
+                        case KEY_STOPCD: {  break; }
+                        case KEY_NEXTSONG: {  break; }
+                        case KEY_PREVIOUSSONG: {  break; }
+                        case KEY_REWIND: {  break; }
+                        case KEY_FASTFORWARD: {  break; }
                     }
                 }
             }
