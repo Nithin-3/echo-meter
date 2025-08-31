@@ -47,13 +47,17 @@ make
 ./echo-meter aud
 ```
 
-### For listner
+### Install (system-wide)
+
+You can install echo-meter system-wide using:
+
 ```sh
-gcc listner.c -o listner
-sudo chown root:root ./listener
-sudo chmod 4755 ./listener
-./listner
+sudo make install
 ```
+
+This will copy the binaries and any necessary files to appropriate system directories for all users.
+**Note:**  
+`echolis` is a listener for echo-meter; run it as yourself as a daemon after installation.
 
 ---
 
