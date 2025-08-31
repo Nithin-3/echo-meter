@@ -2,6 +2,7 @@
 #include <string.h>
 #include <gtk-layer-shell/gtk-layer-shell.h>
 #include "conf.h"
+#include "glibconfig.h"
 #include "path.h"
 #include "tool.h"
 #define RESET   "\033[0m"
@@ -73,15 +74,23 @@ static const char* icon(Type which, const Config *conf) {
 
         case AUD:
             return getMute() ? conf->icon.mute : conf->icon.sound;
+        case CAP_ON:
+            return "[CAP ON]"; // placeholder
+
+        case NUM_ON:
+            return "[NUM ON]"; // placeholder
+
+        case SCR_ON:
+            return "[SCR ON]"; // placeholder
 
         case CAP:
-            return "[CAP]"; // placeholder
+            return "[CAP OFF]"; // placeholder
 
         case NUM:
-            return "[NUM]"; // placeholder
+            return "[NUM OFF]"; // placeholder
 
         case SCR:
-            return "[SCR]"; // placeholder
+            return "[SCR OFF]"; // placeholder
 
         case INVALIDT:
         default:
@@ -96,10 +105,10 @@ static gboolean updateStatus(gpointer userData) {
     if (fraction < 0.0f) {
         GtkWidget *label = g_object_get_data(G_OBJECT(slider), "progress-label");
         if (label) gtk_label_set_text(GTK_LABEL(label), ico);
-        if (gtk_widget_get_visible(slider)) gtk_widget_hide(slider);
+        if (gtk_widget_get_visible(slider)) gtk_widget_set_visible(slider,FALSE);
         return G_SOURCE_CONTINUE;
     }
-    if (slider && !gtk_widget_get_visible(slider)) gtk_widget_show(slider);
+    if (slider && !gtk_widget_get_visible(slider)) gtk_widget_set_visible(slider,TRUE);
     char statusText[128] = "";
     snprintf(statusText, sizeof(statusText), "%s %.0f%%", ico, fraction * 100);
     updateProgress(fraction, statusText);
@@ -204,7 +213,7 @@ bool validate_percentage(const char *s) {
 
 bool validate_args(int argc, char *argv[]) {
     if (argc < 2) return false;
-    if (!(strcmp(argv[1], "aud") == 0 || strcmp(argv[1], "mic") == 0  || strcmp(argv[1], "cap") == 0 || strcmp(argv[1], "num") == 0|| strcmp(argv[1], "bri") == 0)) return false;
+    if (parseType(argv[1]) == INVALIDT) return false;
     float value = 0.0;
     int dir = -1;
     if (argc >= 3) {
