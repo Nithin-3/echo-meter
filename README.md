@@ -41,25 +41,26 @@ cd echo-meter
 make
 ```
 
-### Install root helper (for brightness control)
-
-```sh
-sudo make install-helper
-```
-
 ### Run
 
 ```sh
-./echo-meter
+./echo-meter aud
+```
+
+### For listner
+```sh
+gcc listner.c -o listner
+sudo chown root:root ./listener
+sudo chmod 4755 ./listener
+./listner
 ```
 
 ---
 
 ## Usage
 
-```sh
 echo-meter [aud|mic|bri] (+|-) [0-100]
-```
+
 - `aud` – Control output audio volume
 - `mic` – Control microphone volume
 - `bri` – Control screen brightness
@@ -69,9 +70,9 @@ echo-meter [aud|mic|bri] (+|-) [0-100]
   ```sh
   echo-meter bri +
   ```
-- Set volume to 35%:
+- Add volume to 35:
   ```sh
-  echo-meter aud 35
+  echo-meter aud + 35
   ```
 - Decrease microphone volume:
   ```sh
