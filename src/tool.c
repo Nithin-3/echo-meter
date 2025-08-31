@@ -114,7 +114,7 @@ static int mixerElem(int isPlay, int isGet, float *val, int isMute, int muteStat
 
         // --- SET mute ---
         if (isMute > 0) {
-            int sw = !muteState; // muteState=1→mute, 0→unmute
+            int sw = muteState; // muteState=0→mute, 1→unmute
             if (isPlay && snd_mixer_selem_has_playback_switch(e)) {
                 snd_mixer_selem_set_playback_switch(e, SND_MIXER_SCHN_FRONT_LEFT, sw);
                 snd_mixer_selem_set_playback_switch(e, SND_MIXER_SCHN_FRONT_RIGHT, sw);

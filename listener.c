@@ -81,8 +81,8 @@ int main() {
                         case KEY_BRIGHTNESSDOWN: runCommand("echo-meter bri -"); break;
                         case KEY_VOLUMEUP: runCommand("echo-meter aud +"); break;
                         case KEY_VOLUMEDOWN: runCommand("echo-meter aud -"); break;
-                        case KEY_MUTE: runCommand("echo-meter aud"); break;
-                        case KEY_MICMUTE: runCommand("echo-meter mic"); break;
+                        case KEY_MUTE: runCommand("echo-meter mut"); break;
+                        case KEY_MICMUTE: runCommand("echo-meter micmut"); break;
                         case KEY_CAPSLOCK: runCommand(isON(fds[i].fd, LED_CAPSL)?"echo-meter capon":"echo-meter cap"); break;
                         case KEY_NUMLOCK:  runCommand(isON(fds[i].fd, LED_NUML)?"echo-meter numon":"echo-meter num"); break;
                         case KEY_SCROLLLOCK: runCommand(isON(fds[i].fd, LED_SCROLLL)?"echo-meter scron":"echo-meter scr"); break;

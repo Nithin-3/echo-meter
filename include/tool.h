@@ -7,8 +7,10 @@ typedef enum { INVALIDT = -1, AUD, BRI, MIC, CAP_ON, NUM_ON, SCR_ON, CAP, NUM, S
 
 static Type parseType(const char *type) {
     if (strcmp(type, "aud") == 0) return AUD;
+    if (strcmp(type, "mut") == 0) return AUD;
     if (strcmp(type, "bri") == 0) return BRI;
     if (strcmp(type, "mic") == 0) return MIC;
+    if (strcmp(type, "micmut") == 0) return MIC;
     if (strcmp(type, "cap") == 0) return CAP;
     if (strcmp(type, "num") == 0) return NUM;
     if (strcmp(type, "scr") == 0) return SCR;
@@ -26,5 +28,7 @@ void step(const Type mode, bool direction, float stepVal);
 
 int getMute(void);
 int getMicMute(void);
+int setMute(int s);
+int setMicMute(int s);
 #endif
 

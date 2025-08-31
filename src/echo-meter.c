@@ -246,6 +246,8 @@ static int onCommandLine(GApplication *app, GApplicationCommandLine *cmdline, gp
         printf("Usage: %s [aud|mic|bri] (+|-) (0-100)\n", argv[0]);
         return 1;
     }
+    if (strcmp(argv[1], "mut") == 0) setMute(getMute());
+    if (strcmp(argv[1], "micmut") == 0) setMicMute(getMicMute());
     if(globalMode == INVALIDT) g_application_activate(app);
     globalMode = parseType(argv[1]);
 
