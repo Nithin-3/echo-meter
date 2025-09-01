@@ -32,10 +32,6 @@ This project is for Linux users and contributors. Please avoid off-topic discuss
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the maintainers at nithin3dev@gmail.com. All complaints will be reviewed and investigated promptly and fairly.
 
-## Enforcement
-
-Project maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct. Project maintainers who do not follow or enforce the Code of Conduct may be removed from the project team.
-
 ## Attribution
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.1, available at https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
