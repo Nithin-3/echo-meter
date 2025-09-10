@@ -56,6 +56,7 @@ sudo make install
 ```
 
 This will copy the binaries and any necessary files to appropriate system directories for all users.
+
 **Note:**  
 `echolis` is a listener for echo-meter; run it as yourself as a daemon after installation.
 
