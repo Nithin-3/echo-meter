@@ -21,9 +21,8 @@ Thank you for your interest in contributing to **echo-meter**! Contributions—w
 
 - **Language:** echo-meter is written in **C**.
 - **Toolkit:** Uses GTK4 and targets Linux (Wayland) environments, especially tiling window managers like Hyprland, i3, or bspwm.
-- **BSD is not supported**—please keep development Linux-focused.
 - **Write clear, concise, and minimal code.**
-- **Document your code** where appropriate.
+- **Document your code** where appropriate, If needed.
 
 ### 4. Community Guidelines
 
@@ -31,24 +30,8 @@ Thank you for your interest in contributing to **echo-meter**! Contributions—w
 - See the [Code of Conduct](./CODE_OF_CONDUCT.md) for expected behavior.
 - Respect the minimal, no-frills design philosophy of the project.
 
-### 5. Setting Up Your Development Environment
 
-1. Clone your fork:
-   ```sh
-   git clone https://github.com/your-username/echo-meter.git
-   cd echo-meter
-   ```
-2. Install dependencies:
-   - GTK4 development files (`libgtk-4-dev` or similar for your distro)
-   - Other dependencies as listed in the README or source
-3. Build and run:
-   ```sh
-   make
-   ./echo-meter
-   ```
-   *(If there are any additional build steps, update here.)*
-
-### 6. License
+### 5. License
 
 By contributing you agree that your contributions will be licensed under the [MIT License](./LICENSE) (or the license used by the project).
 
