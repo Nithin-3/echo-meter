@@ -9,8 +9,7 @@ HELPER_DIR   = helper
 OBJ_DIR      = obj
 ASSETS_DIR   = assets
 INSTALL_DIR  = /usr/share/echo-meter
-CONFIG_DIR   = $(shell getent passwd $(SUDO_USER) 2>/dev/null | cut -d: -f6 || echo $(HOME))/.config/echo-meter
-BIN_DIR      = /usr/bin
+BIN_DIR      = /usr/sbin
 
 # Targets
 MAIN_TARGET     = echo-meter
@@ -18,13 +17,13 @@ HELPER_TARGET   = write-brightness
 LISTENER_TARGET = echolis
 
 # Sources
-MAIN_SOURCES   = $(SRC_DIR)/echo-meter.c $(SRC_DIR)/conf.c $(SRC_DIR)/tool.c
-HELPER_SOURCES = $(HELPER_DIR)/write-brightness.c
+MAIN_SOURCES    = $(SRC_DIR)/echo-meter.c $(SRC_DIR)/conf.c $(SRC_DIR)/tool.c
+HELPER_SOURCES  = $(HELPER_DIR)/write-brightness.c
 LISTENER_SOURCE = listener.c
 
 # Objects
-MAIN_OBJECTS   = $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(MAIN_SOURCES)))
-HELPER_OBJECTS = $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(HELPER_SOURCES)))
+MAIN_OBJECTS    = $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(MAIN_SOURCES)))
+HELPER_OBJECTS  = $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(HELPER_SOURCES)))
 
 # Quiet flag
 Q = @
@@ -72,12 +71,7 @@ install: $(MAIN_TARGET) $(HELPER_TARGET) $(LISTENER_TARGET)
 	$(Q)install -m 644 $(ASSETS_DIR)/conf.json $(INSTALL_DIR)/
 	$(Q)install -m 644 $(ASSETS_DIR)/style.css $(INSTALL_DIR)/
 
-	# Install assets (per-user config)
-	$(Q)install -d $(CONFIG_DIR)
-	$(Q)install -m 644 $(ASSETS_DIR)/conf.json $(CONFIG_DIR)/
-	$(Q)install -m 644 $(ASSETS_DIR)/style.css $(CONFIG_DIR)/
-
-# Uninstall (keeps user configs)
+# Uninstall (keeps user configs untouched)
 uninstall:
 	$(Q)rm -f $(BIN_DIR)/$(MAIN_TARGET)
 	$(Q)rm -f $(BIN_DIR)/$(LISTENER_TARGET)
@@ -91,4 +85,3 @@ clean:
 	$(Q)rm -rf $(OBJ_DIR) $(MAIN_TARGET) $(HELPER_TARGET) $(LISTENER_TARGET)
 
 .PHONY: all install uninstall clean
-
