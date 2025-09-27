@@ -61,6 +61,7 @@ obj/
 echo-meter
 echolis
 write-brightness
+compile_commands.json
 # Backup files
 *~
 *.bak
