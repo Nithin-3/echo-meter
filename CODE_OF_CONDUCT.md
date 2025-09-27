@@ -2,9 +2,9 @@
 
 ## Our Commitment
 
-As maintainers and contributors of the echo-meter project, we pledge to make participation in our project and community a welcoming, harassment-free, and friendly experience for everyone, regardless of experience level, gender identity and expression, sexual orientation, disability, personal appearance, body size, race, ethnicity, age, or religion.
+As maintainers and contributors of the echo-meter project, we pledge to make participation in our project and community a welcoming, harassment-free, and friendly experience for everyone, regardless of experience level and expression, sexual orientation, disability, personal appearance, body size, race, ethnicity, age, or religion.
 
-Echo-meter is focused on Linux users and contributors; while we encourage broad participation, please note that echo-meter is not intended for BSD platforms.
+Echo-meter is focused on Linux users and contributors;
 
 ## Our Standards
 
@@ -13,7 +13,6 @@ Examples of behavior that contributes to creating a positive environment include
 - Using welcoming and inclusive language
 - Being respectful of differing viewpoints and experiences
 - Offering friendly and constructive feedback
-- Showing empathy toward other community members
 - Helping newcomers feel comfortable and supported
 
 Examples of unacceptable behavior by participants include:
