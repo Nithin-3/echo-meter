@@ -72,10 +72,10 @@ int main() {
     struct input_event ev;
     while (running) {
         poll(fds, num_fds, -1);
-        for (int i = 0; i < num_fds; i++) {
-            if (fds[i].revents & POLLIN) {
-                while (read(fds[i].fd, &ev, sizeof(ev)) == sizeof(ev)) {
-                    if (ev.type != EV_KEY || ev.value != 1) continue;
+        for (int i = 0; i < num_fds; i++) 
+            if (fds[i].revents & POLLIN)
+                if (read(fds[i].fd, &ev, sizeof(ev)) == sizeof(ev)) {
+                    if (ev.type != EV_KEY || ev.value == 0) continue;
                     switch (ev.code) {
                         case KEY_BRIGHTNESSUP: runCommand("echo-meter bri +"); break;
                         case KEY_BRIGHTNESSDOWN: runCommand("echo-meter bri -"); break;
@@ -108,8 +108,7 @@ int main() {
                         case KEY_FASTFORWARD: {  break; }
                     }
                 }
-            }
-        }
+
     }
     for (int i = 0; i < num_fds; i++) close(fds[i].fd);
     return 0;
