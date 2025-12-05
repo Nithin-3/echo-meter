@@ -5,13 +5,14 @@ A lightweight on-screen display (OSD) and controller for brightness, volume, and
 ---
 ## Screen Recording
 
-[▶ Watch demo video](assetsR/recording-2025-12-05_12-52-22.mp4)
+A demo of the application in action is available at the following URL:
 
-<!-- For some renderers (not most of GitHub), a direct embed: -->
-<video width="400" controls>
-  <source src="assetsR/recording-2025-12-05_12-52-22.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+[![Screen Record](https://img.youtube.com/vi/echo-meter/0.jpg)](https://nithin-3.github.io/portfo/galven/echo-meter.mp4)
+
+If the above image link doesn't work, click the link below:
+
+➡️ [View the screen recording demo here](https://nithin-3.github.io/portfo/galven/echo-meter.mp4)
+
 
 ## Features
 
