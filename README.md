@@ -3,6 +3,9 @@
 A lightweight on-screen display (OSD) and controller for brightness, volume, and microphone, written in C for Linux Wayland compositors (e.g., Hyprland). Offers both reading and adjustment of system settings, with a secure root helper for brightness control.
 
 ---
+## Screen Recording
+
+![Demo](assetsR/recording-2025-12-05_12-52-22.mp4)
 
 ## Features
 
