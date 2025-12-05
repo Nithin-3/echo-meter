@@ -1,11 +1,17 @@
 # echo-meter
 
-A lightweight on-screen display (OSD) and controller for brightness, volume, and microphone, written in C for Linux Wayland compositors (e.g., Hyprland). Offers both reading and adjustment of system settings, with a secure root helper for brightness control.
+A lightweight on-screen display (OSD) and controller for brightness, volume, and microphone, written in C for Linux Wayland compositors (e.g., Hyprland). Offers both reading and adjustment of system state in a simple, friendly UI, no D-Bus or desktop environment required.
 
 ---
 ## Screen Recording
 
-![Demo](assetsR/recording-2025-12-05_12-52-22.mp4)
+[▶ Watch demo video](assetsR/recording-2025-12-05_12-52-22.mp4)
+
+<!-- For some renderers (not most of GitHub), a direct embed: -->
+<video width="400" controls>
+  <source src="assetsR/recording-2025-12-05_12-52-22.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## Features
 
@@ -24,7 +30,7 @@ A lightweight on-screen display (OSD) and controller for brightness, volume, and
 
 ## Why?
 
-Most tiling window managers on Wayland lack native OSD or controls for volume, brightness, microphone, or lock states. echo-meter fills this gap, offering both user feedback and real control, with a focus on safety (root helper only for brightness write).
+Most tiling window managers on Wayland lack native OSD or controls for volume, brightness, microphone, or lock states. echo-meter fills this gap, offering both user feedback and real control, with a beautiful UI.
 
 ---
 
