@@ -1,6 +1,6 @@
 # Compiler
 CC       = gcc
-CFLAGS   = -Wall -g -O2 `pkg-config --cflags gtk4 gtk4-layer-shell-0 json-glib-1.0`
+CFLAGS   = -Wall -g -O2 `pkg-config --cflags gtk4 gtk4-layer-shell-0 json-glib-1.0` -DINSTALL_DIR=\"$(INSTALL_DIR)\"
 LDFLAGS  = `pkg-config --libs gtk4 gtk4-layer-shell-0 json-glib-1.0` -lasound
 
 # Directories
@@ -9,7 +9,7 @@ HELPER_DIR   = helper
 OBJ_DIR      = obj
 ASSETS_DIR   = assets
 INSTALL_DIR  = /usr/share/echo-meter
-BIN_DIR      = /usr/sbin
+BIN_DIR      = /usr/bin
 
 # Targets
 MAIN_TARGET     = echo-meter
@@ -41,7 +41,7 @@ $(HELPER_TARGET): $(HELPER_OBJECTS)
 
 # Build listener executable
 $(LISTENER_TARGET): $(LISTENER_SOURCE)
-	$(Q)$(CC) $(CFLAGS) -Iinclude $< -o $@
+	$(Q)$(CC) $(CFLAGS) -Iinclude $< -o $@ -lpthread
 
 # Compile source files
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
